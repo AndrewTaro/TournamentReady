@@ -1,0 +1,454 @@
+<ui>
+	<block className="FormationReadySwitcher">
+		<bind name="firstEntityDH" value="'selfPlayerEntity'; CC.accountSelf"/>
+		<bind name="watchDH" value="'isSelfPlayerReady';		['selfPlayerEntity.preBattlePlayerSimple.evIsReadyChanged']; selfPlayerEntity.preBattlePlayerSimple.isReady"/>
+		<bind name="watchDH" value="'isSelfPlayerInBattle';	['selfPlayerEntity.preBattlePlayerSimple.evIsInBattleChanged']; selfPlayerEntity.preBattlePlayerSimple.isInBattle"/>
+		<bind name="collectionDH" value="CC.battleType; 'selectedBattleTypes'; 'selected'"/>
+		<bind name="watch" value="'selectedBattleType'; selectedBattleTypes[0].battleType.type"/>
+		<bind name="primaryEntityDH" value="'battleTypeEntity'; CC.battleType; selectedBattleType"/>
+		<bind name="watchDH" value="'readyButtonDenyReasons'; ['battleTypeEntity.battleType.evDisableReasonChanged']; battleTypeEntity.battleType.readyButtonReasons"/>
+		<bind name="watch" value="'isReadyBtnEnabled'; (readyButtonDenyReasons.length == 0) || isSelfPlayerReady ? true : false"/>
+		<!--mod-->
+		<!--current ship-->
+		<bind name="firstEntityDH" value="'shipSelectionEntity'; CC.shipSelection"/>
+		<bind name="watchDH" value="'currentShipId'; ['shipSelectionEntity.shipSelection.evShipUpdate']; shipSelectionEntity.shipSelection.currentShipId"/>
+		<bind name="primaryEntityDH" value="'shipEntity'; CC.ship; currentShipId"/>
+		<bind name="watchDH" value="'subtype'; ['shipEntity.ship.evUpdate']; shipEntity.ship.subtype"/>
+		<!--current crew-->
+		<bind name="watchDH" value="'crewId'; ['shipEntity.ownShip.evCrewChanged']; shipEntity.ownShip.crewId"/>
+		<bind name="primaryEntityDH" value="'crewEntity'; CC.crew; crewId"/>
+		<bind name="primaryEntityDH" value="'skillTreeEntity'; CC.skillTree; str(crewId + '_' + subtype)"/>
+
+		<bind name="watchDH" value="'usedSkillPoints'; ['skillTreeEntity.skillTree.evSkillsChanged']; skillTreeEntity.skillTree.usedSkillPoints"/>
+		<!--bind name="watchDH" value="'freeSkillPoints'; ['skillTreeEntity.skillTree.evFreeSkillPointsChanged']; skillTreeEntity.skillTree.freeSkillPoints"/-->
+		<bind name="watchDH" value="'maxSkillPoints'; ['crewEntity.crew.evChanged']; crewEntity.crew.maxSkillPoints"/>
+		<!--bind name="watchDH" value="'allSkillPoints'; ['crewEntity.crew.evChanged']; crewEntity.crew.allSkillPoints"/-->
+		<bind name="watchDH" value="'isPenaltiesActive'; ['crewEntity.crew.evChanged']; crewEntity.crew.isPenaltiesActive"/>
+
+		<bind name="watch" value="'hasCrew'; crewId != 0"/>
+		<bind name="watch" value="'isFullyAdapted'; !isPenaltiesActive"/>
+		<bind name="watch" value="'hasMaxSkillPoints'; maxSkillPoints == usedSkillPoints"/>
+
+		<bind name="watch" value="'isCrewValid'; hasCrew &amp;&amp; hasMaxSkillPoints &amp;&amp; isFullyAdapted"/>
+
+		<!--current signals-->
+		<bind name="watchDH" value="'maxSignals'; ['shipEntity.ownShip.evUpdateConfig']; shipEntity.ownShip.sigLimit"/>
+		<bind name="collectionDH" value="CC.signal; 'installedSignalsCollection'; 'isInstalled'"/>
+		<bind name="collectionDH" value="CC.signal; 'expiredSignalsCollection'; 'isInstalled.expired'"/>
+		<bind name="watch" value="'allSignalsValid'; expiredSignalsCollection.length == 0"/>
+		<bind name="watch" value="'allSignalsInstalled'; installedSignalsCollection.length == maxSignals"/>
+
+		<bind name="watch" value="'isSignalValid'; allSignalsValid &amp;&amp; allSignalsInstalled"/>
+		
+		<!--current modernizations-->
+		<bind name="collectionDH" value="CC.equipmentSlot; 'modernizationsCollection'; 'bySlotType.1'"/>
+		<bind name="collectionDesign" value="'DES_modernizationsCollection'; 'emptyModernizationsCollection'; {'filter':$entity.equipmentSlot.installedEntityId == 0}; []"/>
+		<bind name="watch" value="'allModernizationsInstalled'; emptyModernizationsCollection.length == 0"/>
+
+		<bind name="watch" value="'isModernizationValid'; allModernizationsInstalled"/>
+
+		<!--modal-->
+		<bind name="watch" value="'isEverythingOK'; isCrewValid &amp;&amp; isSignalValid &amp;&amp; isModernizationValid"/>
+		<bind name="watch" value="'__action'; isEverythingOK ? _isTrainingRoom ? 'setIsReadyInTrainingRoom' : 'setIsReadyInDivision' : null"/>
+		<bind name="watch" value="'__request'; isEverythingOK ? null : _isTrainingRoom ? 'tournamentReadyTraning' : 'tournamentReadyDivision'"/>
+		<!--mod-->
+		<style>
+			<flow value="horizontal"/>
+			<marginTop value="8px"/>
+			<marginBottom value="4px"/>
+			<marginLeft value="2px"/>
+			<marginRight value="2px"/>
+		</style>
+		<block>
+			<styleClass value="$FullsizeAbsolute"/>
+			<style>
+				<backgroundImage value="url:../service_kit/buttons/tab_bar/bg.png"/>
+				<background9Slice value="[4,4]"/>
+				<margin value="-2px"/>
+			</style>
+		</block>
+		<block>
+			<bind name="name" value="isSelfPlayerReady ? 'isReadyDivision' : 'isNotReadyDivision'"/>
+			<bind name="tooltip" value="'MultipleWarningsTooltip'; isReadyBtnEnabled ? null : {_warningsArr: readyButtonDenyReasons}"/>
+			<bind name="tooltip" value="'FormationReadyButtonTooltip'; isReadyBtnEnabled ? {} : null; 0"/>
+			<!--mod-->
+			<bind name="instance" value="'TextSwitchTab'; {	_width: '115px',
+												_height: '25px',
+												_label: toUpperCase(tr('IDS_READY')),
+												_disabled: !isReadyBtnEnabled,
+												_isReadyBtn: true,
+												_name: 'readyDivision',
+												_action: __action,
+												_actionParams: {isReady: true},
+												_request: __request,
+												_selected: isSelfPlayerReady || isSelfPlayerInBattle }"/>
+			<!--mod-->
+		</block>
+		<block>
+			<style>
+				<height value="100%"/>
+			</style>
+			<block className="VerticalDivider">
+				<style>
+					<height value="100%"/>
+					<width value="3px"/>
+					<backgroundSize value="fill"/>
+					<backgroundImage value="url:../service_kit/dividers/divider_v.png"/>
+				</style>
+			</block>
+		</block>
+		<block>
+			<bind name="tooltip" value="'FormationNotReadyButtonTooltip'; {_isReadyBtnEnabled: isReadyBtnEnabled}; 0"/>
+			<bind name="instance" value="'TextSwitchTab'; {	_width: '115px',
+												_height: '25px',
+												_label: toUpperCase(tr('IDS_NOT_READY')),
+												_isReadyBtn: false,
+												_name: 'notReadyDivision',
+												_action: _isTrainingRoom ? 'setIsReadyInTrainingRoom' : 'setIsReadyInDivision',
+												_actionParams: {isReady: false},
+												_selected: !(isSelfPlayerReady) &amp;&amp; !(isSelfPlayerInBattle) }"/>
+		</block>
+	</block>
+
+	<block className="BigReadyForFormationBattleButton">
+		<bind name="firstEntityDH" value="'selfPlayerEntity'; CC.accountSelf"/>
+		<bind name="watchDH" value="'isSelfPlayerReady'; ['selfPlayerEntity.preBattlePlayerSimple.evIsReadyChanged']; selfPlayerEntity.preBattlePlayerSimple.isReady"/>
+		<bind name="collectionDH" value="CC.battleType; 'selectedBattleTypes'; 'selected'"/>
+		<bind name="watch" value="'selectedBattleType'; selectedBattleTypes[0].battleType.type"/>
+		<bind name="primaryEntityDH" value="'battleTypeEntity'; CC.battleType; selectedBattleType"/>
+		<bind name="watchDH" value="'readyButtonDenyReasons'; ['battleTypeEntity.battleType.evDisableReasonChanged']; battleTypeEntity.battleType.readyButtonReasons"/>
+		<bind name="watch" value="'isReadyBtnEnabled'; (readyButtonDenyReasons.length == 0) || isSelfPlayerReady ? true : false"/>
+		<style>
+			<width value="146px"/>
+			<height value="51px"/>
+			<padding value="2px"/>
+			<backgroundImage value="url:../service_kit/buttons/tab_bar/bg.png"/>
+			<background9Slice value="[4,4]"/>
+		</style>
+		<bind name="tooltip" value="'MultipleWarningsTooltip'; !isReadyBtnEnabled &amp;&amp; !isSelfPlayerReady ? {_warningsArr: readyButtonDenyReasons} : null"/>
+		<bind name="tooltip" value="'FormationReadyButtonTooltip'; isReadyBtnEnabled &amp;&amp; !isSelfPlayerReady ? {} : null"/>
+		<bind name="tooltip" value="'FormationNotReadyButtonTooltip'; isSelfPlayerReady ? {_isReadyBtnEnabled: isReadyBtnEnabled} : null; 0"/>
+		<bind name="instance" value="'TextSwitchTab'; {	_width: '100%',
+										_height: '100%',
+										_label: 'IDS_READY',
+										_size: 2,
+										_disabled: !isReadyBtnEnabled,
+										_isReadyBtn: true,
+										_action: _isTrainingRoom ? 'setIsReadyInTrainingRoom' : 'setIsReadyInDivision',
+										_actionParams: {isReady: !isSelfPlayerReady},
+										_selected: isSelfPlayerReady,
+										_selectedClickable: true}"/>
+	</block>
+
+	<block className="TournamentReadyCommanderWarning">
+		<block>
+			<bind name="visible" value="!isCrewValid"/>
+			<!--modal-->
+			<bind name="watch" value="'crewHeader'; !hasCrew ? 'IDS_NO_CREW'
+													:!isFullyAdapted ? 'IDS_CREW_STATUS_SKILLS_PENALTY_DUE_ADAPTATION'
+													:hasFreeSkillPoints ? 'IDS_MODAL_ENTER_BATTLE_WITHOUT_SKILLS_DESCRIPTION_PARAGRAPH_1'
+													:!hasMaxSkillPoints ? subst('IDS_CREW_LEVEL', [], {crewLevel: allSkillPoints})
+													: 'ERROR!'"/>
+			<!--mod-->
+			<style>
+				<width value="100%"/>
+				<align value="middle"/>
+				<padding value="32px"/>
+			</style>
+			<block>
+				<style>
+					<width value="100%"/>
+				</style>
+				<block type="text">
+					<styleClass value="$TextDefaultBold21NM"/>
+					<bind name="class" value="'$FontColorOrange'"/>
+					<bind name="text" value="crewHeader"/>
+				</block>
+			</block>
+		</block>
+	</block>
+
+	<block className="TournamentReadyModernizationWarning">
+		<block>
+			<bind name="visible" value="!isModernizationValid"/>
+
+			<style>
+				<width value="100%"/>
+				<align value="middle"/>
+				<padding value="32px"/>
+			</style>
+			<block>
+				<style>
+					<width value="100%"/>
+				</style>
+				<block type="text">
+					<styleClass value="$TextDefaultBold21NM"/>
+					<bind name="class" value="'$FontColorOrange'"/>
+					<bind name="text" value="tr('IDS_MODERNIZATION_IS_INSTALLED') + ': ' + (modernizations - emptyModernizations) + '/' + modernizations"/>
+				</block>
+			</block>
+		</block>
+	</block>
+
+	<block className="TournamentReadySignalWarning">
+		<block>
+			<bind name="visible" value="!isSignalValid"/>
+
+			<style>
+				<width value="100%"/>
+				<align value="middle"/>
+				<padding value="32px"/>
+			</style>
+			<block>
+				<style>
+					<width value="100%"/>
+				</style>
+				<block>
+					<bind name="visible" value="emptySignals &gt; 0"/>
+					<block type="text">
+						<styleClass value="$TextDefaultBold21NM"/>
+						<bind name="class" value="'$FontColorOrange'"/>
+						<bind name="text" value="tr('IDS_INSTALLED_SIGNALS_COUNTER') + ': ' + (maxSignals - emptySignals) + '/' + maxSignals"/>
+					</block>
+				</block>
+				<block>
+					<bind name="visible" value="expiredSignals &gt; 0"/>
+					<block type="text">
+						<styleClass value="$TextDefaultBold21NM"/>
+						<bind name="class" value="'$FontColorOrange'"/>
+						<bind name="text" value="tr('IDS_WARNING_SIGNALS_EXPIRED') + ': ' + expiredSignals"/>
+					</block>
+				</block>
+			</block>
+		</block>
+	</block>
+
+	<block className="ModalWindowStartBattleWithoutSkillsContent">
+		<bind name="firstEntityDH" value="'selfPlayerEntity'; CC.accountSelf"/>
+		<bind name="watchDH" value="'selfPlayerDbId'; 		[]; selfPlayerEntity.accountSimple.dbId"/>
+		<bind name="watchDH" value="'selfPlayerName'; 		['selfPlayerEntity.accountName.evChanged']; selfPlayerEntity.accountName.name"/>
+		<bind name="watchDH" value="'selfPlayerNickName'; 	['selfPlayerEntity.accountName.evChanged']; selfPlayerEntity.accountName.nickName"/>
+		<bind name="watchDH" value="'divisionShipId'; ['selfPlayerEntity.preBattlePlayerSimple.evShipIdChanged']; selfPlayerEntity.preBattlePlayerSimple.shipId"/>
+		<bind name="firstEntityDH" value="'dockEntity'; CC.dockDataMarker"/>
+		<bind name="watchDH" value="'shipId'; ['dockEntity.shipSelection.evShipUpdate']; dockEntity.shipSelection.currentShipId"/>
+		<bind name="watchDH" value="'shipIdForModuleInset'; ['dockEntity.shipSelection.evShipViewUpdate']; dockEntity.shipSelection.currentShipIdForModuleInset"/>
+		<bind name="watchDH" value="'shipIdForResearch'; ['dockEntity.shipSelection.evShipUpdate'] ; dockEntity.shipSelection.currentShipIdForResearch"/>
+		<bind name="watch" value="'actualShipId'; divisionShipId ? divisionShipId : shipId"/>
+		<bind name="primaryEntityDH" value="'ownShipEntity'; CC.ownShip; actualShipId"/>
+		<bind name="watchDH" value="'ownShipInfo'; ['ownShipEntity.ship.evUpdate', 'ownShipEntity.ship.evCurrentSkinChanged']; ownShipEntity.ship"/>
+		<bind name="watchDH" value="'crewId'; ['ownShipEntity.ownShip.evCrewChanged'];	ownShipEntity.ownShip.crewId"/>
+
+		<!--mod-->
+		<!--current ship-->
+		<bind name="primaryEntityDH" value="'shipEntity'; CC.ship; shipId"/>
+		<bind name="watchDH" value="'subtype'; ['shipEntity.ship.evUpdate']; shipEntity.ship.subtype"/>
+		<!--current crew-->
+		<bind name="watchDH" value="'selecetedCrewId'; ['shipEntity.ownShip.evCrewChanged']; shipEntity.ownShip.crewId"/>
+		<bind name="primaryEntityDH" value="'crewEntity'; CC.crew; selecetedCrewId"/>
+		<bind name="primaryEntityDH" value="'skillTreeEntity'; CC.skillTree; str(selecetedCrewId + '_' + subtype)"/>
+
+		<bind name="watchDH" value="'usedSkillPoints'; ['skillTreeEntity.skillTree.evSkillsChanged']; skillTreeEntity.skillTree.usedSkillPoints"/>
+		<bind name="watchDH" value="'freeSkillPoints'; ['skillTreeEntity.skillTree.evFreeSkillPointsChanged']; skillTreeEntity.skillTree.freeSkillPoints"/>
+		<bind name="watchDH" value="'maxSkillPoints'; ['crewEntity.crew.evChanged']; crewEntity.crew.maxSkillPoints"/>
+		<bind name="watchDH" value="'allSkillPoints'; ['crewEntity.crew.evChanged']; crewEntity.crew.allSkillPoints"/>
+		<bind name="watchDH" value="'isPenaltiesActive'; ['crewEntity.crew.evChanged']; crewEntity.crew.isPenaltiesActive"/>
+
+		<bind name="watch" value="'hasCrew'; selecetedCrewId != 0"/>
+		<bind name="watch" value="'isFullyAdapted'; !isPenaltiesActive"/>
+		<bind name="watch" value="'hasMaxSkillPoints'; maxSkillPoints == usedSkillPoints"/>
+		<bind name="watch" value="'hasFreeSkillPoints'; freeSkillPoints &gt; 0"/>
+
+		<bind name="watch" value="'isCrewValid'; hasCrew &amp;&amp; hasMaxSkillPoints &amp;&amp; isFullyAdapted"/>
+
+		<!--current signals-->
+		<bind name="watchDH" value="'maxSignals'; ['shipEntity.ownShip.evUpdateConfig']; shipEntity.ownShip.sigLimit"/>
+		<bind name="collectionDH" value="CC.signal; 'installedSignalsCollection'; 'isInstalled'"/>
+		<bind name="collectionDH" value="CC.signal; 'expiredSignalsCollection'; 'isInstalled.expired'"/>
+		<bind name="watch" value="'allSignalsValid'; expiredSignalsCollection.length == 0"/>
+		<bind name="watch" value="'allSignalsInstalled'; installedSignalsCollection.length == maxSignals"/>
+		<bind name="watch" value="'emptySignals'; maxSignals - installedSignalsCollection.length"/>
+
+		<bind name="watch" value="'isSignalValid'; allSignalsValid &amp;&amp; allSignalsInstalled"/>
+		
+		<!--current modernizations-->
+		<bind name="collectionDH" value="CC.equipmentSlot; 'modernizationsCollection'; 'bySlotType.1'"/>
+		<bind name="collectionDesign" value="'DES_modernizationsCollection'; 'emptyModernizationsCollection'; {'filter':$entity.equipmentSlot.installedEntityId == 0}; []"/>
+		<bind name="watch" value="'modernizations'; modernizationsCollection.length"/>
+		<bind name="watch" value="'emptyModernizations'; emptyModernizationsCollection.length"/>
+		<bind name="watch" value="'allModernizationsInstalled'; emptyModernizations == 0"/>
+
+		<bind name="watch" value="'isModernizationValid'; allModernizationsInstalled"/>
+
+		<!--mod-->
+
+		<style>
+			<width value="600px"/>
+			<align value="center"/>
+		</style>
+		<block>
+			<bind name="appear" value="'addedToStage'; 0; 0; {alpha: 0}; {alpha: 0}; SC.Common.EASING_FUNCTIONS.OUT_QUAD"/>
+			<bind name="appear" value="'lagAfterAddedToStage'; 0.15; 1*0.075; {alpha: 0, top: 10}; {alpha: 1, top: 0}; SC.Common.EASING_FUNCTIONS.OUT_QUAD"/>
+			<bind name="appear" value="'startHide'; 0.15; 1 * 0.055; {alpha: 1, top: 0}; {alpha: 0, top: -10}; SC.Common.EASING_FUNCTIONS.IN_QUAD"/>
+			<style>
+				<width value="100%"/>
+				<paddingTop value="32px"/>
+				<paddingBottom value="32px"/>
+				<paddingLeft value="32px"/>
+				<paddingRight value="32px"/>
+			</style>
+			<block>
+				<!--mod-->
+				<bind name="visible" value="!isCrewValid"/>
+				<!--mod-->
+				<style>
+					<width value="180px"/>
+					<marginRight value="16px"/>
+					<marginRight value="32px"/>
+				</style>
+				<bind name="instance" value="'CrewStereotypeWithName'; {	_crewId: crewId,
+														_shipClass: ownShipInfo.subtype,
+														_size: 2,
+														_isRentIconHidden: true}"/>
+			</block>
+
+			<block>
+				<!--mod-->
+				<bind name="visible" value="hasFreeSkillPoints"/>
+				<!--mod-->
+				<style>
+					<width value="100%"/>
+					<marginTop value="8px"/>
+				</style>
+				<block type="text">
+					<style>
+						<width value="100%"/>
+						<marginBottom value="16px"/>
+					</style>
+					<styleClass value="$TextDefaultBold21NM"/>
+					<bind name="class" value="'$FontColorOrange'"/>
+					<default_text value="IDS_ENTER_BATTLE_WITHOUT_SKILLS_HEADER"/>
+					<params>
+						<param name="name" value="NoCrewSkillsAlert"/>
+					</params>
+				</block>
+				<block type="text">
+					<style>
+						<width value="100%"/>
+						<leading value="-2"/>
+						<alpha value="0.75"/>
+						<marginBottom value="12px"/>
+					</style>
+					<styleClass value="$TextDefault17NM"/>
+					<default_text value="IDS_MODAL_ENTER_BATTLE_WITHOUT_SKILLS_DESCRIPTION_PARAGRAPH_1"/>
+				</block>
+				<block type="text">
+					<style>
+						<width value="100%"/>
+						<leading value="-2"/>
+						<alpha value="0.75"/>
+					</style>
+					<styleClass value="$TextDefault17NM"/>
+					<default_text value="IDS_MODAL_ENTER_BATTLE_WITHOUT_SKILLS_DESCRIPTION_PARAGRAPH_2"/>
+				</block>
+			</block>
+
+			<!--mod-->
+			<!---->
+			<block>
+				<style>
+					<marginRight value="32px"/>
+					<top value="0"/>
+					<width value="100%"/>
+				</style>
+
+				<!---->
+				<bind name="instance" value="'TournamentReadyCommanderWarning'; {
+												isFullyAdapted: isFullyAdapted,
+												hasCrew: hasCrew,
+												hasMaxSkillPoints: hasMaxSkillPoints,
+												hasFreeSkillPoints: hasFreeSkillPoints,
+												isCrewValid: isCrewValid,
+												allSkillPoints: allSkillPoints,
+												}"/>
+				<bind name="instance" value="'TournamentReadyModernizationWarning'; {
+												isModernizationValid: isModernizationValid,
+												emptyModernizations: emptyModernizations,
+												modernizations: modernizations,
+												}"/>
+				<bind name="instance" value="'TournamentReadySignalWarning'; {
+												isSignalValid: isSignalValid,
+												expiredSignals: expiredSignalsCollection.length,
+												emptySignals: emptySignals,
+												maxSignals: maxSignals,
+												}"/>
+				<!---->	
+			</block>
+			<!---->
+			<!--mod-->
+
+			<style>
+				<flow value="horizontal"/>
+			</style>
+		</block>
+		<block>
+			<bind name="appear" value="'addedToStage'; 0; 0; {alpha: 0}; {alpha: 0}; SC.Common.EASING_FUNCTIONS.OUT_QUAD"/>
+			<bind name="appear" value="'lagAfterAddedToStage'; 0.15; 1.5*0.075; {alpha: 0, top: 10}; {alpha: 1, top: 0}; SC.Common.EASING_FUNCTIONS.OUT_QUAD"/>
+			<bind name="appear" value="'startHide'; 0.15; 1.5 * 0.055; {alpha: 1, top: 0}; {alpha: 0, top: -10}; SC.Common.EASING_FUNCTIONS.IN_QUAD"/>
+			<style>
+				<width value="100%"/>
+				<align value="center"/>
+			</style>
+			<block className="HorizontalDividerTwoPx">
+				<style>
+					<width value="100%"/>
+					<height value="2px"/>
+					<backgroundSize value="fill"/>
+					<backgroundImage value="url:../service_kit/dividers/divider_h.png"/>
+				</style>
+			</block>
+			<block type="text">
+				<styleClass value="$TextDefault25NM"/>
+				<style>
+					<marginTop value="32px"/>
+					<alpha value="0.9"/>
+				</style>
+				<default_text value="IDS_ENTER_BATTLE_WITHOUT_SKILLS_QUESTION"/>
+			</block>
+		</block>
+		<block>
+			<style>
+				<marginTop value="32px"/>
+			</style>
+			<block>
+				<bind name="appear" value="'addedToStage'; 0; 0; {alpha: 0}; {alpha: 0}; SC.Common.EASING_FUNCTIONS.OUT_QUAD"/>
+				<bind name="appear" value="'lagAfterAddedToStage'; 0.15; 2.5*0.075; {alpha: 0, top: 10}; {alpha: 1, top: 0}; SC.Common.EASING_FUNCTIONS.OUT_QUAD"/>
+				<bind name="appear" value="'startHide'; 0.15; 2.5 * 0.055; {alpha: 1, top: 0}; {alpha: 0, top: -10}; SC.Common.EASING_FUNCTIONS.IN_QUAD"/>
+				<style>
+					<width value="129px"/>
+				</style>
+				<bind name="instance" value="'DefaultButton'; {	_label: 'IDS_YES',
+												_focusIndex: 1,
+												_enabled: true,
+												_defaultFocused: true,
+												_name: 'btn_ok'}"/>
+			</block>
+			<block>
+				<bind name="appear" value="'addedToStage'; 0; 0; {alpha: 0}; {alpha: 0}; SC.Common.EASING_FUNCTIONS.OUT_QUAD"/>
+				<bind name="appear" value="'lagAfterAddedToStage'; 0.15; 2*0.075; {alpha: 0, top: 10}; {alpha: 1, top: 0}; SC.Common.EASING_FUNCTIONS.OUT_QUAD"/>
+				<bind name="appear" value="'startHide'; 0.15; 2 * 0.055; {alpha: 1, top: 0}; {alpha: 0, top: -10}; SC.Common.EASING_FUNCTIONS.IN_QUAD"/>
+				<style>
+					<width value="129px"/>
+					<marginLeft value="24px"/>
+				</style>
+				<bind name="instance" value="'DefaultButton'; {	_label: 'IDS_CANCEL_UPPER_CASE',
+												_focusIndex: 2,
+												_enabled: true,
+												_name: 'btn_cancel'}"/>
+			</block>
+			<style>
+				<flow value="horizontal"/>
+			</style>
+		</block>
+	</block>
+
+</ui>	

@@ -1,0 +1,1082 @@
+import 'core.txt'
+import 'menu.txt'
+import 'battle.txt'
+import 'lobby_fake.txt'
+
+LoadingBattle
+{
+	context 'LoadingBattle'
+	leave on [sfm.goToDock cnxt.enterBalancer cnxt.failEnqueue]
+	
+	on cnxt.createdReallyAccount # reconnect when enterArena was called 
+		send sfm.goToDock
+	
+	on sys.enter Wait [Wait]
+	{
+		leave on [cnxt.bgLoaded cnxt.showBattle]
+	}
+
+	on sys.enter send sfm.battleLoadingStarted
+	on sys.enter send cnxt.closeBrowser
+	on sys.enter send cnxt.suspendBrowser
+}
+
+LoadingOnlineBattle [LoadingBattle]
+{
+	on cnxt.addChat BattleChat
+	{
+		context 'BattleChat'
+		leave on [cnxt.avatarLeavesWorld cnxt.playerBecomesSpectator]
+	}
+
+	on sys.enter DynamicDivisions
+	{
+		context 'DynamicDivisions'
+	}
+
+	on cnxt.bgLoaded LoadingBattleWindow [Scene]
+	{
+		window 'LoadingBattle'
+		on sys.enter send action.finiLoadingScreen
+		leave on cnxt.showBattle
+	}
+	on sys.enter BattleData
+	{
+		context 'BattleData'
+		leave on cnxt.avatarLeavesWorld
+
+		on cnxt.diplomacy Diplomacy
+		{
+			on cnxt.alive send sfm.activateDiplomacy 
+		}
+	}
+
+	on cnxt.enterBattle Battle [Battle]
+}
+
+
+
+#--------------------------------------------
+PreBattleOriginal [Context]
+{
+	context 'PreBattle'
+
+	on sys.enter send action.authenticateWebBrowser
+
+	on cnxt.winStoreEnabled WinStoreShop
+	{
+		context 'WinStoreShop'
+	}
+
+	on [sys.enter cnxt.createdAccount] WebClientInteraction
+	{
+		context 'WebClientInteraction'
+		leave on cnxt.enterArena
+	}
+
+	on [sys.enter cnxt.createdAccount] PromoScreens
+	{
+		context 'PromoScreens'
+		on [sfm.goToDock cnxt.createdReallyAccount] send action.showPromoscreens
+		leave on cnxt.enterBalancer
+	}
+
+	on sys.enter RankedBattles
+	{
+		context 'RankedBattles'
+	}
+	
+	on cnxt.gameParamsSync Config
+	{
+		context 'Config'
+	}
+
+	on sys.enter DivisionEntrance ### We should start listen for Account.enterDivision
+	{
+		context 'DivisionEntrance'
+		on cnxt.enterDivision Division
+		{
+			context 'Division'
+			leave on cnxt.leaveDivision
+		}
+	}
+	
+	on sys.enter PrimeTime
+	{
+		context 'PrimeTime'
+	}
+	
+	on sys.enter VoiceChatEnabled
+	{
+		context 'VoiceChat'
+	}
+
+	on [cnxt.createdReallyAccount sfm.goToDock cnxt.leaveBattleSession] Lobby [Scene] # 1 usual from login 2 usual from battle 3 reconnect without entering arena
+	{
+		context 'Dock'
+
+		on sys.enter XMPP
+		{
+			context 'XMPP'
+		}
+
+		on sys.enter send sfm.wakeupBrowser
+		
+		on cnxt.showSpaceScreenshot PortScreenshot [BaseScreenshot]
+		{
+			on cnxt.finishVehicleLoading send sfm.leaveScreenshot
+		}
+
+		on sfm.showShipyardScreenshot ShipyardScreenshot [BaseScreenshot]
+		{
+			on [cnxt.shipyardHideWaitLoading sfm.leaveShipyard cnxt.failedToLoadWebContent] send sfm.leaveScreenshot
+		}
+
+		on sys.enter TrainingRooms
+		{
+			context 'TrainingRooms'
+			on cnxt.enterBalancer send action.hideTrainingRoomWindow
+		}
+		
+		on cnxt.startVehicleLoading WaitLoadingDock [WaitLoading]
+
+		on nav.enterClans ClansInset [WebBrowserBase]
+		{
+			window 'GuideBrowserWindowPortSound'
+
+			on sys.enter FreezeNavigation
+			{
+				freeze [router.navigateTo action.navigateTo]
+				leave on [cnxt.clansDeactivated cnxt.enterArena]
+			}
+
+			on up.unloadClans ClansUnloading
+			{
+				on sys.enter send sfm.deactivateWebProject
+			}
+
+			on sys.enter ClansMain
+			{
+				on [router.navigateTo action.navigateTo] send up.unloadClans
+			}
+
+			leave on nav.exitClans
+		}
+
+		on [cnxt.dockReady debug.showDockWindow] DockWindow
+		{
+			window 'Dock'
+
+			inputHandler 'DockInput'
+
+			on [sys.enter sys.exit sfm.goToDock] send sfm.switchToMain
+			on sfm.switchToMain send router.navigateTo '{"route": "MAIN"}'
+
+			on request.showPremInPort ShipPremInPort
+			{
+				consume sfm.goToDock
+
+				on sys.enter send sfm.goToDock
+				on sys.exit send router.navigateTo '{"route": "PORTAL", "data": {"url": "buyGoldAndPremiumInGame"}}'
+
+				leave on sfm.goToDock
+			}
+
+			on nav.enterManagement ManagementInset [DockSubInset]
+			{
+				on sys.exit send action.setCompareData
+				leave on nav.exitManagement
+			}
+
+			on [nav.enterInset nav.enterClans] DockSubInset [DockSubInset]
+
+			on cnxt.coachShown Coach
+			{
+				consume key.ESCAPE.down
+				leave on cnxt.coachHidden
+			}
+
+			on nav.enterShipyard ShipYard [InputConsumer]
+			{
+				on sys.enter send cnxt.closeBrowser
+				on sys.enter send action.hideAllSystemMessages
+				on sys.enter send sfm.showShipyardScreenshot
+				on sys.enter send action.loadShipyardSpace
+
+				on sys.enter FreezeNavigation
+				{
+					freeze [router.navigateTo action.navigateTo]
+					leave on [sfm.readyToLeaveShipyard cnxt.enterArena]
+				}
+
+				on sys.enter WaitForBrowser
+				{
+					window 'WaitingWindow'
+					leave on [cnxt.shipyardHideWaitLoading cnxt.failedToLoadWebContent]
+				}
+
+				on up.unloadShipyard ShipyardUnloading
+				{
+					window 'WaitingWindow'
+
+					on sys.enter send sfm.deactivateWebProject
+					on sys.enter send cnxt.showSpaceScreenshot
+					on cnxt.finishVehicleLoading send sfm.readyToLeaveShipyard
+				}
+
+				on cnxt.finishShipyardSpaceLoading ShipYardLoaded
+				{
+					window 'ShipyardBrowserWindow'
+					inputHandler 'PreviewWebBrowserInput'
+					data '{ "elementName": "ShipyardBrowserWindow", "url": "shipyardInGame"}'
+
+					on [cnxt.shipyardHideWaitLoading cnxt.failedToLoadWebContent] ScreenshotHidden
+					{
+						on [key.ESCAPE.down gui.btn_cancel gui.buttonClose] send router.navigateTo '{"route": "PORT"}'
+					}
+					on [router.navigateTo action.navigateTo] send up.unloadShipyard
+					leave on [router.navigateTo action.navigateTo]
+				}
+
+				on cnxt.browserInputOn BrowserInputOn
+				{
+					consume [key.ESCAPE.down gui.btn_cancel gui.buttonClose]
+					leave on [router.navigateTo action.navigateTo cnxt.browserInputOff]
+				}
+
+				on sys.exit send sfm.leaveShipyard
+
+				leave on nav.exitShipyard
+			}
+
+			on input.shipOverviewIn ShipOverview
+			{
+				inputHandler 'ShipOverviewInput'
+				leave on input.shipOverviewOut
+			}
+
+			leave on debug.leaveDockWindow
+		}
+
+		on action.needHideArmor NeedHideArmor
+		{
+			on cnxt.finishVehicleLoading send action.hideArmour
+			on cnxt.finishVehicleLoading send action.ShipArmor.hideArmor
+			leave on cnxt.finishVehicleLoading
+		}
+		
+		on nav.enterShipPreview ShipPreview
+		{
+			consume [key.ESCAPE.down gui.btn_cancel gui.buttonClose]
+			on [gui.buttonClose gui.btn_cancel key.ESCAPE.down] send router.navigateTo '{"route": "PORT"}'
+
+			on sys.exit send action.clearExcursion
+			on sys.exit send sfm.unfreezeMainAL
+
+			leave on nav.exitShipPreview
+		}
+
+		on nav.enterNewbieGifts NewbieGifts
+		{
+			freeze cnxt.showLevelUp
+			freeze sfm.switchToMain
+			freeze [cnxt.showFeatureSplash cnxt.showShipAcesIntro cnxt.showEventBattleIntro cnxt.arcEventIntro request.arcEventIntro wait.showPromoScreenCommon wait.showPromoScreenEscBlocked]
+
+			on request.enterNewbieGiftsClaim send sfm.freezeMainAL
+
+			consume key.ESCAPE.down
+			on key.ESCAPE.down send router.navigateTo '{"route": "PORT"}'
+
+			on sys.exit send action.GiftListsProxy.giftsScreenShown
+			
+			leave on nav.exitNewbieGifts
+		}
+
+		on cnxt.showCrewManagement ModalWindowCrewManagement [ModalWindowCrewManagement]
+		{
+			leave on request.showEconomicsManagement
+		}
+
+		on cnxt.showEconomicsManagement ModalWindowEconomicsManagement [ModalWindowEconomicsManagement]
+		{
+			leave on request.showCrewManagement
+		}
+
+		on request.showPreviewWindow ViewObjectWindow [ViewObjectWindow]
+
+		# окно профиля игрока
+		# открытие поиска кланов в информации об игроке слева вверху в доке
+		# открытие браузера с профилем клана по нотификации "инвайт в клан"
+		# открытие новостей
+		# открытие покупки денег из панели с дублонами
+		# открытие видео по кораблю
+		# открытие преммагазина из баннера корабля
+		# открытие гайдов из профила игрока на каждом из уровней аккаунта
+		# открытие projectR
+		# открытие преммагаза в информации об игроке слева вверху в доке
+		# открытие покупки денег в информации об игроке слева вверху в доке
+		# открытие играем вместе в информации об игроке слева вверху в доке
+		# открытие имущества в информации об игроке слева вверху в доке
+		on [nav.enterPortal] WebPortal [PortalWebBrowser]
+		{
+			priority 100
+		}
+
+		# помещено сюда в рамках задачи WWSD-191577
+		on [request.openModalCoachWindowCompleteAccount cnxt.coachShown] ModalCoachWindowCompleteAccount [ModalCoachWindowCompleteAccount]
+
+		on sys.enter ShipTTXPanelDockWindow
+		{
+			window 'ShipTTXPanelDock'
+		}
+
+		on sys.enter ShipsCarouselPanelWindow
+		{
+			window 'ShipsCarouselPanel'
+		}
+
+		on [gui.buttonAccountCompletion request.openModalWindowCompleteAccount] ModalWindowCompleteAccount [Modal]
+		{
+			window 'ModalWindowCompleteAccount'
+			on [gui.btn_* key.ESCAPE.down] send action.SteamContext.resetCompletion
+			leave on [action.SteamContext.resetCompletion cnxt.enterBalancer]
+		}
+
+		on request.showParagonRules ModalWindowParagonRules [ModalWindowParagonRules]
+
+		on request.showModalShipsBranchesFeatures ModalWindowShipsBranchesFeatures [ModalWindowShipsBranchesFeatures]
+
+		on request.showModalParagonsDropBranch ModalWindowParagonsDropBranch [ModalWindowParagonsDropBranch]
+
+		# Battle type and operation select windows - must be below all other modal windows
+		on sys.enter ModalWindowBattleTypeChooser [ModalWindowBattleTypeChooser]
+
+		on request.showClanBattlesSchedule ModalWindowClanBattlesSchedule [ModalWindowClanBattlesSchedule]
+
+		on request.showTrainingRoomsList ModalWindowTrainingRoomsList [ModalWindowTrainingRoomsList]
+
+		on cnxt.showTrainingRoom ModalWindowTrainingRoom [Scene]
+		{
+			priority 3
+			window 'ModalWindowTrainingRoom'
+			
+			on [key.ESCAPE.down gui.btn_cancel] send request.closeTrainingRoom
+			
+			leave on	[cnxt.closeTrainingRoom request.showTrainingRoomsList]
+			consume		[key.ESCAPE.down gui.btn_cancel nav.enterPortal]
+
+			on [nav.enterPortal] WebPortal [PortalWebBrowser]
+			{
+				on [cnxt.closeTrainingRoom request.showTrainingRoomsList] send router.navigateTo '{"route": "PORT"}'
+			}
+
+			on action.onBattleButtonClick ConsumeBattleButtonClicks
+			{
+				consume action.onBattleButtonClick
+				leave on [cnxt.hideNotReadyPlayers sfm.startBattleAlertWindowClosed sfm.goToDock cnxt.failEnqueue]
+			}
+		}
+		
+		on action.joinPasswordedRoom ModalWindowTrainingRoomPasswordEnter [MessageBox]
+		{
+			window 'ModalWindowTrainingRoomPasswordEnter'
+			
+			leave on [request.showTrainingRoomsList cnxt.showTrainingRoom request.showModalRoomDoesNotExist]
+		}
+
+		on request.showModalRoomDoesNotExist ModalRoomDoesNotExist [MessageBox]
+		{
+			window 'ModalRoomDoesNotExist'
+			
+			leave on [key.ESCAPE.down gui.btn_cancel request.showTrainingRoomsList]
+		}
+		
+		on cnxt.showWaitingRoomList WaitingTrainingRoom [WaitingTrainingRoom]
+
+		on action.showModalWindowControlBlocker ModalWindowControlBlocker [ModalWindowControlBlocker]
+
+		on cnxt.dockReady ModalWindowPVEOperationChooser [ModalWindowPVEOperationChooser]
+
+		on input.enterFreeCameraDev FreeCameraDock [FreeCamera]
+
+		on nav.enterCampaigns ChooseCampaignsWindow [ChooseCampaignsWindow]
+
+		on request.openModalALCarouselElementInfo ModalALCarouselElementInfo [MessageBox]
+		{
+			window 'ModalALCarouselElementInfo'
+		}
+		
+		on cnxt.showCampaignDone ModalWindowCampaignDone [ModalWindowCampaignDone]
+		
+		on cnxt.enterBalancer RandomBattle [RandomBattle]
+		{
+			on sys.enter send router.navigateTo '{"route": "BALANCER"}'
+			on sys.exit send router.navigateTo '{"route": "MAIN"}'
+		}
+
+		on nav.enterBarge Barge [SubWindow]
+		{
+			on sys.enter send action.LootboxProxy.moveToBarge
+			
+			#WWSD-98633 Окно контейнеров отображается поверх кланового портала
+			#WWSD-147330 Armory открывается не в full screen при переходе из баннера на барже
+			on action.moveFromRewards send router.navigateTo '{"route": "PORT"}'
+			on sys.exit send action.LootboxProxy.moveFromBarge
+
+			on request.openPurchaseLootboxWindow PurchaseLootboxWindow [PurchaseLootboxWindow]
+
+			on action.openPurchaseLootboxWindowChance PurchaseLootboxWindowChance [PurchaseLootboxWindowChance]
+
+			on request.showLootboxTypes ModalWindowLootboxTypes [ModalWindowLootboxTypes]
+
+			on action.lockBargeControls BargeLockedState
+			{
+				consume [key.ESCAPE.down gui.btn_cancel gui.buttonClose router.navigateTo]
+				leave on [action.unlockBargeControls cnxt.enterBalancer]
+			}
+
+			leave on nav.exitBarge
+		}
+
+		on request.showBattlePassMain ModalWindowBattlePassMain [ModalWindowBattlePassMain]
+		{
+			priority 99
+		}
+
+		on sys.enter ChatNotificationsPanelWindow
+		{
+			window 'ChatNotificationsPanel'
+		}
+
+		##################### MODAL WINDOWS #######################
+
+		on wait.showPromoScreenCommon ModalWindowPromoscreenCommon [ModalWindowPromoscreenCommon]
+		{
+			priority 41
+		}
+
+		on wait.showPromoScreenEscBlocked ModalWindowPromoscreenNoEsc [ModalWindowPromoscreenNoEsc]
+		{
+			priority 41
+		}
+
+		on cnxt.showBattlePassSplashScreen ModalWindowBattlePassSplashScreen [ModalWindowBattlePassMain]
+		{
+			priority 41
+			on sys.enter send sfm.showBattlePassFastRewardsSale
+			on sfm.battlePassSplashScreenViewed send action.setPromoViewed '+STATE_DATA'
+			on sfm.battlePassSplashScreenExited send action.setPromoExited
+		}
+
+		on cnxt.showFeatureSplash ModalWindowFeatureSplash [MessageBox]
+		{
+			priority 41
+			window 'ModalWindowFeatureSplash'
+			on [request.setSplashScreenViewed] send action.setPromoViewed '+STATE_DATA'
+			on [key.ESCAPE.down gui.btn_cancel] send action.setPromoExited
+			leave on [key.ESCAPE.down gui.btn_cancel request.setSplashScreenViewed]
+		}
+
+		on cnxt.showShipAcesIntro ModalWindowShipAcesIntro [ModalWindowShipAcesIntro]
+		{
+			priority 41
+		}
+
+		on cnxt.showEventBattleIntro ModalWindowEventBattleIntro [ModalWindowEventBattleIntro]
+		{
+			priority 41
+		}
+
+		on [cnxt.arcEventIntro request.arcEventIntro] ModalWindowArcEventIntro [Modal]
+		{
+			priority 41
+			window 'ModalWindowArcEventIntro'
+			on request.arcEventChooseSide send action.setPromoViewed '+STATE_DATA'
+			on [key.ESCAPE.down request.setSplashScreenExited cnxt.arcEventChooseSide cnxt.arcEventFinish] send action.setPromoExited
+			leave on [key.ESCAPE.down cnxt.arcEventChooseSide request.arcEventChooseSide request.setSplashScreenExited cnxt.arcEventFinish]
+		}
+
+		on [cnxt.arcEventChooseSide request.arcEventChooseSide] ModalWindowArcEventChooseSide [Modal]
+		{
+			window 'ModalWindowArcEventChooseSide'
+			leave on [request.goToPort gui.btn_cancel key.ESCAPE.down request.arcEventShowMainScreen cnxt.arcEventFinish cnxt.enterBalancer]
+		}
+
+		on request.arcEventConfirmSide ModalWindowArcEventConfirmSide [Modal]
+		{
+			window 'ModalWindowArcEventConfirmSide'
+			leave on [request.goToPort gui.btn_cancel key.ESCAPE.down request.arcEventShowMainScreen cnxt.arcEventFinish]
+		}
+
+		on request.arcEventShowMainScreen ModalWindowArcEventMainScreen [Modal]
+		{
+			window 'ModalWindowArcEventMainScreen'
+			leave on [request.goToPort gui.btn_cancel key.ESCAPE.down cnxt.arcEventFinish cnxt.arcEventShowResults cnxt.enterBalancer]
+		}
+
+		on request.arcEventShowRules ModalWindowArcEventRules [Modal]
+		{
+			window 'ModalWindowArcEventRules'
+			leave on [request.goToPort gui.btn_cancel key.ESCAPE.down cnxt.arcEventFinish cnxt.enterBalancer]
+		}
+
+		on request.arcEventShowLore ModalWindowArcEventLore [Modal]
+		{
+			window 'ModalWindowArcEventLore'
+			leave on [request.arcEventCloseLore gui.btn_cancel key.ESCAPE.down cnxt.arcEventFinish cnxt.enterBalancer]
+		}
+
+		on [request.arcEventShowResults cnxt.arcEventShowResults] ModalWindowArcEventFinish [Modal]
+		{
+			window 'ModalWindowArcEventFinish'
+			leave on [request.goToPort gui.btn_cancel key.ESCAPE.down cnxt.arcEventFinish cnxt.enterBalancer]
+		}
+
+		on request.showRankedRules ModalWindowRankedRules [ModalWindowRankedRules]
+
+		on request.showBrawlRules ModalWindowBrawlRules [ModalWindowBrawlRules]
+
+		on action.reallyOpenAlmanac ModalWindowAlmanacs [ModalWindowAlmanacs]
+		{
+			priority 42
+		}
+
+		on [sfm.hideReplay request.showReplaysWindow] ModalWindowReplays [ModalWindowReplays]
+
+		on request.showRenameReplaysWindow ModalWindowRenameReplays [ModalWindowRenameReplays]
+
+		on [action.openLootboxes action.openLootboxesByType] ModalWindowOpenAllLootBoxes [ModalWindowOpenAllLootBoxes]
+
+		on [request.openRewardsModal] ModalWindowRewardContainer [ModalWindowRewardContainer]
+
+		on nav.enterSse WindowSse [ModalWindowSse]
+
+		on action.ShipAcesProxyUSS.getCellHistory ModalWindowShipAcesDetailedInfo [ModalWindowShipAcesDetailedInfo]
+
+		on request.openModalShipAcesResults ModalShipAcesResults [ModalShipAcesResults]
+
+		on cnxt.inGameSurveyDock inGameSurveyWindow [MessageBox]
+		{
+			window 'InGameSurveyWindow'
+			leave on action.exit
+		}
+
+		on cnxt.showBattleResults ExtendedSystemLogWindow [MessageBox]
+		{
+			window 'ExtendedSystemLogWindow'
+			priority 99
+			leave on [gui.btn_cancel gui.btn_close key.ESCAPE.down]
+
+			on request.showPostBattleSSE ModalWindowPostBattleSSE [ModalWindowPostBattleSSE]
+		}
+
+		on request.showUnavailableExtendedSystemLog UnavailableExtendedSystemLogWindow [MessageBox]
+		{
+			window 'UnavailableExtendedSystemLogWindow'
+			leave on [gui.btn_cancel key.ESCAPE.down]
+		}
+
+		on sys.enter PostBattleAdditionalWindowsDock [PostBattleAdditionalWindows]
+
+		on request.showSseClaimWindow ModalWindowClaimSseReward [ModalWindowClaimSseReward]
+
+		on gui.buttonResearchShip ModalWindowResearchShip [ModalWindowResearchShip]
+
+		on gui.buttonPurchaseShip ModalWindowPurchaseShip [WindowWithPricesAttention]
+		{
+			window 'ModalWindowPurchaseShip'
+			on request.buyShip send action.buyShip
+		}
+
+		on request.giftShipGettingConfirm ModalWindowGiftShipGettingConfirm [MessageBox]
+		{
+			window 'ModalWindowGiftShipGettingConfirm'
+			leave on [gui.btn_cancel key.ESCAPE.down action.GiftListsProxy.claimGift]
+		}
+
+		on request.openResearchModuleWindow ModalWindowResearchModule [WindowWithPricesAttention]
+		{
+			window 'ModalWindowResearchModule'
+			on request.researchModule send action.researchModule
+			#leave on [gui.btn_cancel key.ESCAPE.down action.researchModule]
+		}
+
+		on request.openPurchaseAndInstallModuleWindow ModalWindowPurchaseAndInstallModule [ModalWindowPurchaseAndInstallModule]
+
+		on [action.creditsGoldWindow gui.buttonExchangeGold] ModalWindowConvertGold [ModalWindowConvertGold]
+		{
+			priority 30
+			on request.openConfirmationWindow ModalWindowResourceSpendingConfirmation [ModalWindowResourceSpendingConfirmation]
+		}
+
+		on action.xpFreeExpWindow ModalWindowConvertExp [ModalWindowConvertExp]
+		{
+			priority 30
+			on request.openConfirmationWindow ModalWindowResourceSpendingConfirmation [ModalWindowResourceSpendingConfirmation]
+		}
+
+		on cnxt.showEventBattleDetails ModalWindowEventBattleDetails [ModalWindowEventBattleDetails]
+		{
+			priority 30
+		}
+
+		on action.showInfotip OpenedInfotip
+		{
+			consume key.ESCAPE.down
+			on key.ESCAPE.down send action.hideInfotip
+			leave on action.closeInfotip
+		}
+
+		on dock.sellShip ModalWindowSellShip [WindowWithPricesAttention]
+		{
+			window 'ModalWindowSellShip'
+
+			on sys.enter send action.recalculateCrewFiringCost '+STATE_DATA'
+			on request.sellShip send action.sellShip
+			on [request.* gui.btn_cancel key.ESCAPE.down] send action.sellShipClosed
+		}
+		
+		on [sfm.buttonDogTag] ModalWindowDogTag [ModalWindowDogTag]
+		{
+			priority 30
+		}
+
+		on request.showEventRules ModalWindowEventRules [ModalWindowEventRules]
+
+		on request.showPveRules ModalWindowPveRules [ModalWindowPveRules]
+
+		on request.openHireCrewWindow HireCrew [HireCrew]
+		
+		on request.openRetrainCrewWindow RetrainCrew [RetrainCrew]
+
+		on request.crewFastTraining CrewFastTraining [CrewFastTraining]
+
+		on request.openFireCrewWindow FireCrewYesNo [ModalWindowWithPricesAttention]
+		{
+			window 'ModalWindowFireCrew'
+
+			on sys.enter send action.recalculateCrewFiringCost '+STATE_DATA'
+			on request.fireCrew send action.fireCrew
+
+			on sys.exit send action.fireCrewWindowClosed
+		}
+		
+		on request.learnSkills ModalWindowLearnSkills [MessageBox]
+		{
+			window 'ModalWindowLearnSkills'
+			on request.learnSelectedSkills send action.learnSelectedSkills
+			leave on [gui.btn_cancel key.ESCAPE.down request.learnSelectedSkills]
+		}
+		
+		on request.freeSkillPointsWindow FreeSkillPointsYesNo [FreeSkillPointsYesNo]
+		
+		on request.increaseBarracksCapacity IncreaseBarracksCapacityYesNo [IncreaseBarracksCapacityYesNo]
+
+		on request.openModalWindowCrewInfo ModalWindowCrewInfo [Modal]
+		{
+			window 'ModalWindowCrewInfo'
+			leave on [gui.btn_cancel key.ESCAPE.down request.closeModalWindowCrewInfo]
+		}
+
+		on [dock.showModernizationWindow request.showModernizationsManagementWindow] ModalWindowModernizations [WindowWithPricesAttention]
+		{
+			window 'ModalWindowModernizations'
+			on request.setModernizations send action.setModernizations
+		}
+		
+		on request.leaveDivision leaveDivisionYesNo [UnboundDialogYesNo]
+		{
+			data '{"type" : 0}'
+			on gui.btn_ok resend action.*
+		}
+		on request.dismissDivision dismissDivisionYesNo [UnboundDialogYesNo]
+		{ 
+			data '{"type" : 0 }'
+			on gui.btn_ok resend action.*
+		}
+		on request.kickPlayerFromDivision kickPlayerFromDivisionYesNo [UnboundDialogYesNo]
+		{ 
+			data '{"type" : 0 }'
+			on gui.btn_ok resend action.*
+		}
+		
+		on request.buyAndInstallCamouflageModal BuyExterior [WindowWithPricesAttention]
+		{ 
+			window 'ModalWindowBuyCamouflage'
+			on request.installCamouflage send action.installCamouflage
+			on request.buyAndInstallCamouflage send action.buyAndInstallCamouflage
+		}
+
+		on request.buyAndInstallEcoBoostModal BuyEcoBoost [WindowWithPricesAttention]
+		{
+			window 'ModalWindowBuyEcoBoost'
+			on request.installEcoBoost send action.installEcoBoost
+			on request.buyAndInstallEcoBoost send action.buyAndInstallEcoBoost
+			on request.buyMultiboost send action.buyMultiboost
+			on request.linkMultiboost send action.linkMultiboost
+		}
+
+		on [request.openUnfreezeShipWindow cnxt.openUnfreezeShipWindow] UnfreezeShipWindow [UnfreezeShipWindow]
+		
+		on request.openModalWindowSelectPort BackgroundModalWindowPort [BackgroundModalWindowPort]
+		{
+			priority 30
+		}
+
+		on request.buttonShowPremiumPeriods ModalWindowPremiumAccountChoosePeriod [WindowWithPricesAttention]
+		{
+			window 'ModalWindowPremiumAccountChoosePeriod'
+			on request.buyPremiumAccount send action.buyPremiumAccount
+		}
+
+		on cnxt.showVoteWindow ModalWindowVote [MessageBox]
+		{
+			window 'ModalWindowVote'
+		}
+
+		on request.buyObjectWindow BuyCollectionObjectWindow [BuyCollectionObjectWindow]
+
+
+		on [cnxt.openCollectionDescriptionWindow request.openCollectionDescriptionWindow]  ModalCollectionDescriptionWindow [ModalCollectionDescriptionWindow]
+		{
+			priority 45
+		}
+
+		on wait.showSeasonResults ModalWindowRankedSummary [ModalWindowRankedSummary]
+
+		on [wait.rankedBattleShowStats cnxt.rankBattlesStatsChanged] ModalWindowRankChanged [ModalWindowRankChanged]
+		{
+			priority 10
+		}
+
+		on request.cvcShowSeasonResults ModalCvCSeasonEndsWindow [MessageBox]
+		{
+			priority 13
+			window 'ModalCvCSeasonEnds'
+		}
+		
+		on cnxt.leaveTrainingRoomYesNo leaveTrainingRoomYesNo [UnboundDialogYesNo]
+		{
+			on gui.btn_ok send action.leaveTrainingRoom
+			leave on cnxt.closeTrainingRoom
+		}
+		
+		on cnxt.trainingRoomCreationFailedByLimit RoomCreationFailedByLimitAlert [RoomCreationFailedByLimitAlert]
+
+		on cnxt.startBattleWithoutCommanderAlert ModalWindowStartBattleWithoutCommander [Modal]
+		{
+			window 'ModalWindowStartBattleWithoutCommander'
+			on [gui.btn_ok] send request.startBattleWithoutCommander
+			on [gui.btn_cancel key.ESCAPE.down] send sfm.startBattleAlertWindowClosed
+			leave on [gui.btn_cancel key.ESCAPE.down request.startBattleWithoutCommander]
+		}
+		
+		#testmod
+		on request.tournamentReadyTraning ModalWindowStartBattleWithoutSkills [Modal]
+		{
+			window 'ModalWindowStartBattleWithoutSkills'
+			on [gui.btn_ok] send action.setIsReadyInTrainingRoom '{"isReady": true}'
+			on [gui.btn_cancel key.ESCAPE.down] send sfm.startBattleAlertWindowClosed
+			leave on [gui.btn_cancel key.ESCAPE.down action.setIsReadyInTrainingRoom]
+		}
+		#testmod
+
+		#testmod
+		on request.tournamentReadyDivision ModalWindowStartBattleWithoutSkills [Modal]
+		{
+			window 'ModalWindowStartBattleWithoutSkills'
+			on [gui.btn_ok] send action.setIsReadyInDivision '{"isReady": true}'
+			on [gui.btn_cancel key.ESCAPE.down] send sfm.startBattleAlertWindowClosed
+			leave on [gui.btn_cancel key.ESCAPE.down action.setIsReadyInDivision]
+		}
+		#testmod
+
+		on cnxt.startBattleWithoutSkillsAlert ModalWindowStartBattleWithoutSkills [Modal]
+		{
+			window 'ModalWindowStartBattleWithoutSkills'
+			on [gui.btn_ok] send request.startBattleWithoutSkills
+			on [gui.btn_cancel key.ESCAPE.down] send sfm.startBattleAlertWindowClosed
+			leave on [gui.btn_cancel key.ESCAPE.down request.startBattleWithoutSkills]
+		}
+
+		on cnxt.newBonusTagSeason NewBonusTagSeason
+		{
+			on request.showSnowflakesModal ModalWindowSnowflakesIntro [ModalWindowSnowflakesIntro]
+			consume request.showSnowflakesModal
+			leave on sfm.snowflakesIntroWasShown
+		}
+
+		on [request.showSnowflakesModal request.snowflakesTakeBonuses] ModalWindowSnowflakesTakeBonuses [ModalWindowSnowflakesTakeBonuses]
+
+		on cnxt.showNotReadyPlayers NotReadyPlayers [NotReadyPlayers]
+		on request.openChoosePrimeTimeWindow ModalWindowChoosePrimeTime [ModalWindowChoosePrimeTime]
+		
+		on gui.btn_guide send router.navigateTo '{"route": "PORTAL", "data": {"url": "guidesInGame"}}'
+		on gui.btn_exit_game ConfirmExitGameModalWindow [ConfirmExitGameModalWindow]
+
+		on request.CampaignsProxy.deactivateTask taskDeactivationYesNo [UnboundDialogYesNo]
+		{
+			data '{"type" : 0, "subtitle": "IDS_TASK_CANCEL_EXECUTION_QUESTION"}'
+			on gui.btn_ok resend action.*
+		}
+
+		##################### MODAL WINDOWS #######################
+
+
+		on cnxt.firstBattle FirstBattleChooseShip [Scene]
+		{
+			window 'FirstBattleChooseShip'
+			context 'NoWorldDraw'
+
+			on key.ESCAPE.down send up.openMenu
+
+			on cnxt.enterBalancer ModalWaitLoading [Wait]
+			{
+				window 'WaitingWindow'
+
+				on sys.enter send router.navigateTo '{"route": "BALANCER"}'
+				leave on cnxt.leaveBattleSession
+			}
+
+			consume cnxt.showBattle
+
+			leave on cnxt.showBattle
+		}
+
+		### Level/Rank/Season up
+		on cnxt.showLevelUp ModalWindowAccountLevelUp [ModalWindowAccountLevelUp]
+		{
+			priority 40
+		}
+
+		on sfm.freezeMainAL FreezeMainAL
+		{
+			freeze cnxt.showLevelUp
+			freeze sfm.switchToMain
+			freeze [cnxt.showFeatureSplash cnxt.showShipAcesIntro cnxt.showEventBattleIntro cnxt.arcEventIntro request.arcEventIntro wait.showPromoScreenCommon wait.showPromoScreenEscBlocked]
+
+			leave on sfm.unfreezeMainAL
+		}
+
+		on [gui.buttonMenu key.ESCAPE.down up.openMenu action.openLobbyMenu request.openLobbyMenu] LobbyMenu [LobbyMenu]
+
+		on up.openOptions Options [Options]
+
+		on up.showPartners PartnersInfo [ModalWindowPartnersInfo]
+
+		on cnxt.showDogTag ModalWindowShowDogTag [ModalWindowShowDogTag]
+		{
+			priority 30
+		}
+
+		on up.showDisconnect ConfirmDisconnectModalWindow [ConfirmDisconnectModalWindow]
+		on up.showSwitchAccount ConfirmSwitchAccountModalWindow [ConfirmSwitchAccountModalWindow]
+		
+		on [sfm.hideReplay sfm.activateDock3D] Dock3D
+		{
+			leave on [cnxt.playerBecameAvatar sfm.showReplay]
+			context 'Dock3D'
+		}
+	}
+	
+	on cnxt.active3dDock Dock3DActive
+	{
+		on sys.enter send sfm.activateDock3D
+		on sfm.goToDock send sfm.activateDock3D
+		on cnxt.leaveBalancer send sfm.activateDock3D
+	}
+	
+	on  cnxt.enterArena BattleLoading [LoadingOnlineBattle]
+
+	on [cnxt.battleStoppedUnexpectedly up.exitBattle request.exitBattleAndTryEnterBalancer] WaitDockLoading [Scene]
+	{
+		window 'WaitingWindow'
+		leave on [cnxt.enterBalancer cnxt.finishVehicleLoading cnxt.showWarningModal cnxt.startBattleWithoutCommanderAlert cnxt.startBattleWithoutSkillsAlert]
+	}
+	
+	on [sys.enter cnxt.leaveBalancer sfm.goToDock ] Autokick
+	{
+		context 'Autokick'
+		
+		leave on [cnxt.enterArena cnxt.enterBalancer]
+	}
+
+	on cnxt.showWaitingScreen WaitingScreen [WaitingScreen]
+
+	on cnxt.showTransactionLockScreen TransactionGUILock [TransactionGUILock]
+
+	on input.draggingFlashIn DraggingFlash
+	{
+		inputHandler 'FlashDraggingInput'
+		leave on input.draggingFlashOut
+	}
+
+	on cnxt.notifyBalancerLeave LeaveBalancerNotification [UnboundDialogYesNo]
+
+	on cnxt.showNotification Notification [UnboundDialogYesNo]
+
+	on cnxt.firstBattle PurePort
+	{
+		on cnxt.bgLoaded LoadingFirstBattle [Scene]
+		{
+			window 'LoadingFirstBattle'
+			leave on cnxt.showBattle
+		}
+
+		on cnxt.addChat BattleChat
+		{
+			context 'BattleChat'
+			leave on cnxt.avatarLeavesWorld
+		}
+
+		on cnxt.enterArena BattleData
+		{
+			context 'LoadingBattle'
+
+			# reconnect when enterArena was called
+			on cnxt.createdReallyAccount send sfm.goToDock
+
+			consume cnxt.leaveBattleSession
+
+			on cnxt.leaveBattleSession send cnxt.showNotification '{ "title": "IDS_BATTLE_SESSION_LEAVE_REASON_ARENA_FAILED_TITLE", "subtitle" : "IDS_BATTLE_SESSION_LEAVE_REASON_ARENA_FAILED", "type" : 1 }'
+			on cnxt.leaveBattleSession send sfm.goToDock
+
+			on sys.enter BattleData
+			{
+				context 'BattleData'
+			}
+
+			leave on cnxt.avatarLeavesWorld
+		}
+
+		on cnxt.enterBattle Battle [Battle]
+
+		consume [cnxt.enterArena sfm.activateDock3D ]
+
+		leave on [sfm.goToDock cnxt.failEnqueue]
+	}
+
+	on up.showHelp HelpModal [HelpWindow]
+	{
+		data '{ "showCloseButton" : true }'
+		leave on [gui.closeHelpBtn input.hideHelp key.ESCAPE.up]
+	}
+
+	on cnxt.enterArena NoReopenToFirstBattle
+	{
+		consume [cnxt.firstBattle]
+	}
+
+	on [sys.enter cnxt.enterBalancer] Freeze
+	{
+		freeze [cnxt.firstBattle cnxt.showLevelUp action.openAlmanac action.showPromoscreens]
+		leave on request.dockReady
+	}
+
+	on sys.enter DockComponentsActive  # [WWSD-208523] always-active state that can catch goToDock from ShipPremInPort
+	{
+		on [cnxt.createdReallyAccount sfm.goToDock action.reenterBalancer] DockComponents
+		{
+			context 'DockComponents'
+			leave on cnxt.enterArena
+		}
+	}
+
+	on cnxt.continuousBattleEnterBecameAvailable ContinuousBattleEnter
+	{
+		context 'ContinuousBattleEnter'
+
+		on request.exitBattleAndTryEnterBalancer ContinuousBattleEnter
+		{
+
+			on cnxt.showWarningModal ContinuousBattleEnterWarningModal [Modal]
+			{
+				window 'ContinuousBattleEnterWarningModal'
+				on [gui.btn_ok] send cnxt.continuousBattleEnterAccepted
+				on [gui.btn_cancel key.ESCAPE.down] send cnxt.continuousBattleEnterAborted
+				leave on [cnxt.continuousBattleEnterAccepted cnxt.continuousBattleEnterAborted]
+			}
+
+			on cnxt.startBattleWithoutCommanderAlert ModalWindowStartBattleWithoutCommander [Modal]
+			{
+				window 'ModalWindowStartBattleWithoutCommander'
+				on [gui.btn_ok] send cnxt.continuousBattleEnterAccepted
+				on [gui.btn_cancel key.ESCAPE.down] send cnxt.continuousBattleEnterAborted
+				leave on [cnxt.continuousBattleEnterAccepted cnxt.continuousBattleEnterAborted]
+			}
+
+			on cnxt.startBattleWithoutSkillsAlert ModalWindowStartBattleWithoutSkills [Modal]
+			{
+				window 'ModalWindowStartBattleWithoutSkills'
+				on [gui.btn_ok] send cnxt.continuousBattleEnterAccepted
+				on [gui.btn_cancel key.ESCAPE.down] send cnxt.continuousBattleEnterAborted
+				leave on [cnxt.continuousBattleEnterAccepted cnxt.continuousBattleEnterAborted]
+			}
+		}
+
+		leave on [cnxt.continuousBattleEnterSkipped cnxt.continuousBattleEnterAborted cnxt.enterBalancer cnxt.failEnqueue]
+	}
+}
+
+#--------------------------------------------
+RandomBattle [Modal]
+{
+	on cnxt.prepareForBattle StopDrawDock
+	{
+		consume queue.render
+	}
+	on sys.enter RandomBattleWindow
+	{
+		window 'RandomBattle'
+	}
+
+	context 'Balancer'
+
+	on cnxt.enterRandomBattleAsDivisionMember CantEscape [Modal]
+	{
+		# don't allow user input while waiting for battle in Division
+	}
+
+	consume cnxt.leaveBattleSession
+
+	leave on [cnxt.leaveBalancer cnxt.bgLoaded sfm.goToDock]
+	
+	on cnxt.leaveBattleSession send cnxt.showNotification '{ "title" : "IDS_BATTLE_SESSION_LEAVE_REASON_ARENA_FAILED_TITLE", "subtitle" : "IDS_BATTLE_SESSION_LEAVE_REASON_ARENA_FAILED", "type" : 1 }'
+	on cnxt.leaveBattleSession send sfm.goToDock
+
+	on [gui.buttonLeave gui.buttonClose key.ESCAPE.down] send action.exit
+
+	on [action.exit cnxt.prepareForBattle] Wait [WaitModal]
+	{
+		leave on cnxt.leaveBattleSession
+		data '{ "waitingText": "IDS_BUSY_LOADING", "noBackground": true}'
+	}
+}
+
+#--------------------------------------------
+PreBattle [PreBattleOriginal]
+{
+	#Rename me to "PreBattle [PreBattleFake]" and fake windows will be created:
+	#empty dock with goto co-op button
+	#empty matchmaker window
+	#empty loading to battle window
+}
+
+#--------------------------------------------
+ModalWindowCrewManagement [Modal]
+{
+	window 'ModalWindowCrewManagement'
+
+	leave on [gui.btn_cancel cnxt.enterBalancer request.hideCrewManagement action.navigateTo]
+	on sys.exit send action.leaveCrewManagement
+	on sys.exit send action.resetSelectedSkills
+}
+
+#--------------------------------------------
+ModalWindowEconomicsManagement [Modal]
+{
+	window 'ModalWindowEconomicsManagement'
+
+	leave on [gui.btn_cancel cnxt.enterBalancer key.ESCAPE.down request.hideEconomicsManagement action.navigateTo]
+	on sys.exit send action.exitEconomicsManagement
+}
