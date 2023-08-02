@@ -1,4 +1,15 @@
 <ui>
+	<css name="$TournamentReadyTextDefaultBold21NM">
+		<fontFamily value="$WWSDefaultFontBold"/>
+		<mouseEnabled value="false"/>
+		<mouseChildren value="false"/>
+		<fontSize value="21"/>
+		<marginText value="0px|0px|0px|0px"/>
+		<dropShadowFilter value="1 45 0x000000 1 2.0 2.0 0.5 1"/>
+		<selectable value="false"/>
+		<textColor value="0xFF9933"/>
+	</css>
+
 	<block className="FormationReadySwitcher">
 		<bind name="firstEntityDH" value="'selfPlayerEntity'; CC.accountSelf"/>
 		<bind name="watchDH" value="'isSelfPlayerReady';		['selfPlayerEntity.preBattlePlayerSimple.evIsReadyChanged']; selfPlayerEntity.preBattlePlayerSimple.isReady"/>
@@ -14,6 +25,7 @@
 		<bind name="watchDH" value="'currentShipId'; ['shipSelectionEntity.shipSelection.evShipUpdate']; shipSelectionEntity.shipSelection.currentShipId"/>
 		<bind name="primaryEntityDH" value="'shipEntity'; CC.ship; currentShipId"/>
 		<bind name="watchDH" value="'subtype'; ['shipEntity.ship.evUpdate']; shipEntity.ship.subtype"/>
+		<bind name="watch" value="'isDetonatableClass'; isIn(subtype, ['Cruiser', 'Destroyer', 'Battleship'])"/>
 		<!--current crew-->
 		<bind name="watchDH" value="'crewId'; ['shipEntity.ownShip.evCrewChanged']; shipEntity.ownShip.crewId"/>
 		<bind name="primaryEntityDH" value="'crewEntity'; CC.crew; crewId"/>
@@ -32,18 +44,22 @@
 		<bind name="watch" value="'isCrewValid'; hasCrew &amp;&amp; hasMaxSkillPoints &amp;&amp; isFullyAdapted"/>
 
 		<!--current signals-->
+		<bind name="primaryEntityDH" value="'detoSignal'; CC.signal; 4284313520"/>
+		<bind name="watchDH" value="'hasDetoSignal'; ['detoSignal.signal.evUpdated']; detoSignal.signal.isInstalled"/>
 		<bind name="watchDH" value="'maxSignals'; ['shipEntity.ownShip.evUpdateConfig']; shipEntity.ownShip.sigLimit"/>
 		<bind name="collectionDH" value="CC.signal; 'installedSignalsCollection'; 'isInstalled'"/>
 		<bind name="collectionDH" value="CC.signal; 'expiredSignalsCollection'; 'isInstalled.expired'"/>
 		<bind name="watch" value="'allSignalsValid'; expiredSignalsCollection.length == 0"/>
 		<bind name="watch" value="'allSignalsInstalled'; installedSignalsCollection.length == maxSignals"/>
+		<bind name="watch" value="'isDetonatable'; isDetonatableClass &amp;&amp; !hasDetoSignal"/>
 
-		<bind name="watch" value="'isSignalValid'; allSignalsValid &amp;&amp; allSignalsInstalled"/>
+		<bind name="watch" value="'isSignalValid'; allSignalsValid &amp;&amp; allSignalsInstalled &amp;&amp; !isDetonatable"/>
 		
 		<!--current modernizations-->
 		<bind name="collectionDH" value="CC.equipmentSlot; 'modernizationsCollection'; 'bySlotType.1'"/>
-		<bind name="collectionDesign" value="'DES_modernizationsCollection'; 'emptyModernizationsCollection'; {'filter':$entity.equipmentSlot.installedEntityId == 0}; []"/>
-		<bind name="watch" value="'allModernizationsInstalled'; emptyModernizationsCollection.length == 0"/>
+		<bind name="collectionDesign" value="'DES_modernizationsCollection'; 'emptyModernizationsCollection'; {'filter':$entity.equipmentSlot.installedEntityId == 0}; ['equipmentSlot.evInstalledEntityIdChanged']"/>
+		<bind name="watch" value="'emptyModernizations'; emptyModernizationsCollection.length"/>
+		<bind name="watch" value="'allModernizationsInstalled'; emptyModernizations == 0"/>
 
 		<bind name="watch" value="'isModernizationValid'; allModernizationsInstalled"/>
 
@@ -82,6 +98,21 @@
 												_actionParams: {isReady: true},
 												_request: __request,
 												_selected: isSelfPlayerReady || isSelfPlayerInBattle }"/>
+			<!--debug-->
+			<!--
+			<block type="text">
+				<style>
+					<width value="100%"/>
+					<leading value="-2"/>
+					<alpha value="0.75"/>
+					<marginBottom value="12px"/>
+				</style>
+				<styleClass value="$TextDefault17NM"/>
+				<bind name="text" value="emptyModernizations"/>
+			</block>
+			-->
+			<!--debug-->
+			
 			<!--mod-->
 		</block>
 		<block>
@@ -143,13 +174,11 @@
 	<block className="TournamentReadyCommanderWarning">
 		<block>
 			<bind name="visible" value="!isCrewValid"/>
-			<!--modal-->
 			<bind name="watch" value="'crewHeader'; !hasCrew ? 'IDS_NO_CREW'
 													:!isFullyAdapted ? 'IDS_CREW_STATUS_SKILLS_PENALTY_DUE_ADAPTATION'
 													:hasFreeSkillPoints ? 'IDS_MODAL_ENTER_BATTLE_WITHOUT_SKILLS_DESCRIPTION_PARAGRAPH_1'
 													:!hasMaxSkillPoints ? subst('IDS_CREW_LEVEL', [], {crewLevel: allSkillPoints})
 													: 'ERROR!'"/>
-			<!--mod-->
 			<style>
 				<width value="100%"/>
 				<align value="middle"/>
@@ -160,8 +189,7 @@
 					<width value="100%"/>
 				</style>
 				<block type="text">
-					<styleClass value="$TextDefaultBold21NM"/>
-					<bind name="class" value="'$FontColorOrange'"/>
+					<styleClass value="$TournamentReadyTextDefaultBold21NM"/>
 					<bind name="text" value="crewHeader"/>
 				</block>
 			</block>
@@ -182,8 +210,7 @@
 					<width value="100%"/>
 				</style>
 				<block type="text">
-					<styleClass value="$TextDefaultBold21NM"/>
-					<bind name="class" value="'$FontColorOrange'"/>
+					<styleClass value="$TournamentReadyTextDefaultBold21NM"/>
 					<bind name="text" value="tr('IDS_MODERNIZATION_IS_INSTALLED') + ': ' + (modernizations - emptyModernizations) + '/' + modernizations"/>
 				</block>
 			</block>
@@ -206,17 +233,22 @@
 				<block>
 					<bind name="visible" value="emptySignals &gt; 0"/>
 					<block type="text">
-						<styleClass value="$TextDefaultBold21NM"/>
-						<bind name="class" value="'$FontColorOrange'"/>
+						<styleClass value="$TournamentReadyTextDefaultBold21NM"/>
 						<bind name="text" value="tr('IDS_INSTALLED_SIGNALS_COUNTER') + ': ' + (maxSignals - emptySignals) + '/' + maxSignals"/>
 					</block>
 				</block>
 				<block>
 					<bind name="visible" value="expiredSignals &gt; 0"/>
 					<block type="text">
-						<styleClass value="$TextDefaultBold21NM"/>
-						<bind name="class" value="'$FontColorOrange'"/>
+						<styleClass value="$TournamentReadyTextDefaultBold21NM"/>
 						<bind name="text" value="tr('IDS_WARNING_SIGNALS_EXPIRED') + ': ' + expiredSignals"/>
+					</block>
+				</block>
+				<block>
+					<bind name="visible" value="isDetonatable"/>
+					<block type="text">
+						<styleClass value="$TournamentReadyTextDefaultBold21NM"/>
+						<default_text value="IDS_PARAMS_MODIFIER_PMDETONATIONPROB"/>
 					</block>
 				</block>
 			</block>
@@ -242,6 +274,7 @@
 		<!--current ship-->
 		<bind name="primaryEntityDH" value="'shipEntity'; CC.ship; shipId"/>
 		<bind name="watchDH" value="'subtype'; ['shipEntity.ship.evUpdate']; shipEntity.ship.subtype"/>
+		<bind name="watch" value="'isDetonatableClass'; isIn(subtype, ['Cruiser', 'Destroyer', 'Battleship'])"/>
 		<!--current crew-->
 		<bind name="watchDH" value="'selecetedCrewId'; ['shipEntity.ownShip.evCrewChanged']; shipEntity.ownShip.crewId"/>
 		<bind name="primaryEntityDH" value="'crewEntity'; CC.crew; selecetedCrewId"/>
@@ -262,17 +295,20 @@
 
 		<!--current signals-->
 		<bind name="watchDH" value="'maxSignals'; ['shipEntity.ownShip.evUpdateConfig']; shipEntity.ownShip.sigLimit"/>
+		<bind name="primaryEntityDH" value="'detoSignal'; CC.signal; 4284313520"/>
+		<bind name="watchDH" value="'hasDetoSignal'; ['detoSignal.signal.evUpdated']; detoSignal.signal.isInstalled"/>
 		<bind name="collectionDH" value="CC.signal; 'installedSignalsCollection'; 'isInstalled'"/>
 		<bind name="collectionDH" value="CC.signal; 'expiredSignalsCollection'; 'isInstalled.expired'"/>
 		<bind name="watch" value="'allSignalsValid'; expiredSignalsCollection.length == 0"/>
 		<bind name="watch" value="'allSignalsInstalled'; installedSignalsCollection.length == maxSignals"/>
 		<bind name="watch" value="'emptySignals'; maxSignals - installedSignalsCollection.length"/>
+		<bind name="watch" value="'isDetonatable'; isDetonatableClass &amp;&amp; !hasDetoSignal"/>
 
-		<bind name="watch" value="'isSignalValid'; allSignalsValid &amp;&amp; allSignalsInstalled"/>
+		<bind name="watch" value="'isSignalValid'; allSignalsValid &amp;&amp; allSignalsInstalled &amp;&amp; !isDetonatable"/>
 		
 		<!--current modernizations-->
 		<bind name="collectionDH" value="CC.equipmentSlot; 'modernizationsCollection'; 'bySlotType.1'"/>
-		<bind name="collectionDesign" value="'DES_modernizationsCollection'; 'emptyModernizationsCollection'; {'filter':$entity.equipmentSlot.installedEntityId == 0}; []"/>
+		<bind name="collectionDesign" value="'DES_modernizationsCollection'; 'emptyModernizationsCollection'; {'filter':$entity.equipmentSlot.installedEntityId == 0}; ['equipmentSlot.evInstalledEntityIdChanged']"/>
 		<bind name="watch" value="'modernizations'; modernizationsCollection.length"/>
 		<bind name="watch" value="'emptyModernizations'; emptyModernizationsCollection.length"/>
 		<bind name="watch" value="'allModernizationsInstalled'; emptyModernizations == 0"/>
@@ -357,7 +393,7 @@
 			<block>
 				<style>
 					<marginRight value="32px"/>
-					<top value="0"/>
+					<!--top value="0"/-->
 					<width value="100%"/>
 				</style>
 
@@ -380,15 +416,16 @@
 												expiredSignals: expiredSignalsCollection.length,
 												emptySignals: emptySignals,
 												maxSignals: maxSignals,
+												isDetonatable: isDetonatable,
 												}"/>
 				<!---->	
 			</block>
 			<!---->
 			<!--mod-->
 
-			<style>
+			<!--style>
 				<flow value="horizontal"/>
-			</style>
+			</style-->
 		</block>
 		<block>
 			<bind name="appear" value="'addedToStage'; 0; 0; {alpha: 0}; {alpha: 0}; SC.Common.EASING_FUNCTIONS.OUT_QUAD"/>
@@ -412,7 +449,9 @@
 					<marginTop value="32px"/>
 					<alpha value="0.9"/>
 				</style>
-				<default_text value="IDS_ENTER_BATTLE_WITHOUT_SKILLS_QUESTION"/>
+				<!--mod-->
+				<bind name="text" value="hasFreeSkillPoints ? 'IDS_ENTER_BATTLE_WITHOUT_SKILLS_QUESTION' : 'IDS_CONFIRM_ENTER_BATTLE'"/>
+				<!--mod-->
 			</block>
 		</block>
 		<block>
