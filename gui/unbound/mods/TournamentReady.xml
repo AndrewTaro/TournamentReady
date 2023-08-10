@@ -66,7 +66,7 @@
 		<!--modal-->
 		<bind name="watch" value="'isEverythingOK'; isCrewValid &amp;&amp; isSignalValid &amp;&amp; isModernizationValid"/>
 		<bind name="watch" value="'__action'; isEverythingOK ? _isTrainingRoom ? 'setIsReadyInTrainingRoom' : 'setIsReadyInDivision' : null"/>
-		<bind name="watch" value="'__request'; isEverythingOK ? null : _isTrainingRoom ? 'tournamentReadyTraning' : 'tournamentReadyDivision'"/>
+		<bind name="watch" value="'__request'; isEverythingOK ? null : _isTrainingRoom ? 'tournamentReadyTraining' : 'tournamentReadyDivision'"/>
 		<!--mod-->
 		<style>
 			<flow value="horizontal"/>
