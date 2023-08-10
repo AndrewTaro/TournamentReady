@@ -772,7 +772,7 @@ PreBattleOriginal [Context]
 		}
 		
 		#testmod
-		on request.tournamentReadyTraning ModalWindowStartBattleWithoutSkills [Modal]
+		on request.tournamentReadyTraining ModalWindowTournamentReadyTraining [Modal]
 		{
 			window 'ModalWindowStartBattleWithoutSkills'
 			on [gui.btn_ok] send action.setIsReadyInTrainingRoom '{"isReady": true}'
@@ -782,7 +782,7 @@ PreBattleOriginal [Context]
 		#testmod
 
 		#testmod
-		on request.tournamentReadyDivision ModalWindowStartBattleWithoutSkills [Modal]
+		on request.tournamentReadyDivision ModalWindowTournamentReadyDivision [Modal]
 		{
 			window 'ModalWindowStartBattleWithoutSkills'
 			on [gui.btn_ok] send action.setIsReadyInDivision '{"isReady": true}'
