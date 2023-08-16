@@ -120,6 +120,11 @@ PreBattleOriginal [Context]
 			context 'XMPP'
 		}
 
+		on sys.enter PromoScreensData
+		{
+			context 'PromoScreensData'
+		}
+
 		on sys.enter send sfm.wakeupBrowser
 		
 		on cnxt.showSpaceScreenshot PortScreenshot [BaseScreenshot]
@@ -342,8 +347,6 @@ PreBattleOriginal [Context]
 			leave on [action.SteamContext.resetCompletion cnxt.enterBalancer]
 		}
 
-		on request.showParagonRules ModalWindowParagonRules [ModalWindowParagonRules]
-
 		on request.showModalShipsBranchesFeatures ModalWindowShipsBranchesFeatures [ModalWindowShipsBranchesFeatures]
 
 		on request.showModalParagonsDropBranch ModalWindowParagonsDropBranch [ModalWindowParagonsDropBranch]
@@ -394,8 +397,6 @@ PreBattleOriginal [Context]
 		on cnxt.showWaitingRoomList WaitingTrainingRoom [WaitingTrainingRoom]
 
 		on action.showModalWindowControlBlocker ModalWindowControlBlocker [ModalWindowControlBlocker]
-
-		on cnxt.dockReady ModalWindowPVEOperationChooser [ModalWindowPVEOperationChooser]
 
 		on input.enterFreeCameraDev FreeCameraDock [FreeCamera]
 
@@ -532,10 +533,6 @@ PreBattleOriginal [Context]
 			leave on [request.goToPort gui.btn_cancel key.ESCAPE.down cnxt.arcEventFinish cnxt.enterBalancer]
 		}
 
-		on request.showRankedRules ModalWindowRankedRules [ModalWindowRankedRules]
-
-		on request.showBrawlRules ModalWindowBrawlRules [ModalWindowBrawlRules]
-
 		on action.reallyOpenAlmanac ModalWindowAlmanacs [ModalWindowAlmanacs]
 		{
 			priority 42
@@ -636,14 +633,12 @@ PreBattleOriginal [Context]
 			on [request.* gui.btn_cancel key.ESCAPE.down] send action.sellShipClosed
 		}
 		
-		on [sfm.buttonDogTag] ModalWindowDogTag [ModalWindowDogTag]
+		on [request.modalDogTag] ModalWindowDogTag [ModalWindowDogTag]
 		{
 			priority 30
 		}
 
-		on request.showEventRules ModalWindowEventRules [ModalWindowEventRules]
-
-		on request.showPveRules ModalWindowPveRules [ModalWindowPveRules]
+		on request.showRules ModalWindowRules [ModalWindowRules]
 
 		on request.openHireCrewWindow HireCrew [HireCrew]
 		
@@ -707,6 +702,11 @@ PreBattleOriginal [Context]
 			on request.buyAndInstallCamouflage send action.buyAndInstallCamouflage
 		}
 
+		on request.installRecommendedModernizationsModal BuyAndInstallRecommendedModernizations [WindowWithPricesAttention]
+		{
+			window 'ModalWindowBuyAndInstallRecommendedModernizations'
+		}
+
 		on request.buyAndInstallEcoBoostModal BuyEcoBoost [WindowWithPricesAttention]
 		{
 			window 'ModalWindowBuyEcoBoost'
@@ -715,8 +715,6 @@ PreBattleOriginal [Context]
 			on request.buyMultiboost send action.buyMultiboost
 			on request.linkMultiboost send action.linkMultiboost
 		}
-
-		on [request.openUnfreezeShipWindow cnxt.openUnfreezeShipWindow] UnfreezeShipWindow [UnfreezeShipWindow]
 		
 		on request.openModalWindowSelectPort BackgroundModalWindowPort [BackgroundModalWindowPort]
 		{
@@ -864,11 +862,6 @@ PreBattleOriginal [Context]
 
 		on up.showPartners PartnersInfo [ModalWindowPartnersInfo]
 
-		on cnxt.showDogTag ModalWindowShowDogTag [ModalWindowShowDogTag]
-		{
-			priority 30
-		}
-
 		on up.showDisconnect ConfirmDisconnectModalWindow [ConfirmDisconnectModalWindow]
 		on up.showSwitchAccount ConfirmSwitchAccountModalWindow [ConfirmSwitchAccountModalWindow]
 		
@@ -879,6 +872,11 @@ PreBattleOriginal [Context]
 		}
 	}
 	
+	on action.showEventOutdatedWindow ModalWindowEventOutdated [MessageBox]
+	{
+		window 'ModalWindowEventOutdated'
+	}
+
 	on cnxt.active3dDock Dock3DActive
 	{
 		on sys.enter send sfm.activateDock3D
