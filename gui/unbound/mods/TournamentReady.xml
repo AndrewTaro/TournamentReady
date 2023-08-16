@@ -16,7 +16,7 @@
 		<bind name="watchDH" value="'isSelfPlayerInBattle';	['selfPlayerEntity.preBattlePlayerSimple.evIsInBattleChanged']; selfPlayerEntity.preBattlePlayerSimple.isInBattle"/>
 		<bind name="collectionDH" value="CC.battleType; 'selectedBattleTypes'; 'selected'"/>
 		<bind name="watch" value="'selectedBattleType'; selectedBattleTypes[0].battleType.type"/>
-		<bind name="primaryEntityDH" value="'battleTypeEntity'; CC.battleType; selectedBattleType"/>
+		<bind name="entityDH" value="'battleTypeEntity'; selectedBattleTypes[0].id"/>
 		<bind name="watchDH" value="'readyButtonDenyReasons'; ['battleTypeEntity.battleType.evDisableReasonChanged']; battleTypeEntity.battleType.readyButtonReasons"/>
 		<bind name="watch" value="'isReadyBtnEnabled'; (readyButtonDenyReasons.length == 0) || isSelfPlayerReady ? true : false"/>
 		<!--mod-->
@@ -139,36 +139,6 @@
 												_actionParams: {isReady: false},
 												_selected: !(isSelfPlayerReady) &amp;&amp; !(isSelfPlayerInBattle) }"/>
 		</block>
-	</block>
-
-	<block className="BigReadyForFormationBattleButton">
-		<bind name="firstEntityDH" value="'selfPlayerEntity'; CC.accountSelf"/>
-		<bind name="watchDH" value="'isSelfPlayerReady'; ['selfPlayerEntity.preBattlePlayerSimple.evIsReadyChanged']; selfPlayerEntity.preBattlePlayerSimple.isReady"/>
-		<bind name="collectionDH" value="CC.battleType; 'selectedBattleTypes'; 'selected'"/>
-		<bind name="watch" value="'selectedBattleType'; selectedBattleTypes[0].battleType.type"/>
-		<bind name="primaryEntityDH" value="'battleTypeEntity'; CC.battleType; selectedBattleType"/>
-		<bind name="watchDH" value="'readyButtonDenyReasons'; ['battleTypeEntity.battleType.evDisableReasonChanged']; battleTypeEntity.battleType.readyButtonReasons"/>
-		<bind name="watch" value="'isReadyBtnEnabled'; (readyButtonDenyReasons.length == 0) || isSelfPlayerReady ? true : false"/>
-		<style>
-			<width value="146px"/>
-			<height value="51px"/>
-			<padding value="2px"/>
-			<backgroundImage value="url:../service_kit/buttons/tab_bar/bg.png"/>
-			<background9Slice value="[4,4]"/>
-		</style>
-		<bind name="tooltip" value="'MultipleWarningsTooltip'; !isReadyBtnEnabled &amp;&amp; !isSelfPlayerReady ? {_warningsArr: readyButtonDenyReasons} : null"/>
-		<bind name="tooltip" value="'FormationReadyButtonTooltip'; isReadyBtnEnabled &amp;&amp; !isSelfPlayerReady ? {} : null"/>
-		<bind name="tooltip" value="'FormationNotReadyButtonTooltip'; isSelfPlayerReady ? {_isReadyBtnEnabled: isReadyBtnEnabled} : null; 0"/>
-		<bind name="instance" value="'TextSwitchTab'; {	_width: '100%',
-										_height: '100%',
-										_label: 'IDS_READY',
-										_size: 2,
-										_disabled: !isReadyBtnEnabled,
-										_isReadyBtn: true,
-										_action: _isTrainingRoom ? 'setIsReadyInTrainingRoom' : 'setIsReadyInDivision',
-										_actionParams: {isReady: !isSelfPlayerReady},
-										_selected: isSelfPlayerReady,
-										_selectedClickable: true}"/>
 	</block>
 
 	<block className="TournamentReadyCommanderWarning">
