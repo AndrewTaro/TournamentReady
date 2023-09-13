@@ -127,9 +127,9 @@ PreBattleOriginal [Context]
 
 		on sys.enter send sfm.wakeupBrowser
 		
-		on cnxt.showSpaceScreenshot PortScreenshot [BaseScreenshot]
+		on [cnxt.showSpaceScreenshot sfm.showSpaceScreenshot] PortScreenshot [BaseScreenshot]
 		{
-			on cnxt.finishVehicleLoading send sfm.leaveScreenshot
+			on [cnxt.finishVehicleLoading cnxt.showStrategicActions] send sfm.leaveScreenshot
 		}
 
 		on sfm.showShipyardScreenshot ShipyardScreenshot [BaseScreenshot]
@@ -402,6 +402,35 @@ PreBattleOriginal [Context]
 
 		on nav.enterCampaigns ChooseCampaignsWindow [ChooseCampaignsWindow]
 
+		on nav.enterStrategicActions StrategicActions
+		{
+			context 'StrategicActions'
+			inputHandler 'StrategicActionsInput'
+
+			on sys.enter send sfm.showSpaceScreenshot
+			on sys.enter send action.loadStrategicActionsSpace
+
+			on cnxt.showStrategicActions ModalWindowStrategicActions [ModalWindowStrategicActions]
+
+			on cnxt.observeTerritory TerritoryObserver
+			{
+				consume [key.ESCAPE.down gui.btn_cancel]
+				on sys.exit send action.resetViewToDefault
+				leave on [key.ESCAPE.down gui.btn_cancel]
+			}
+
+			on request.showStrategicActionsOnboarding ModalWindowStrategicActionsOnboarding [ModalWindowStrategicActionsOnboarding]
+
+			on sfm.leaveStrategicActions StrategicActionsUnloading
+			{
+				window 'WaitingWindow'
+				on sys.enter send sfm.showSpaceScreenshot
+				on cnxt.finishVehicleLoading send sfm.readyToLeaveStrategicActions
+			}
+
+			leave on sfm.readyToLeaveStrategicActions
+		}
+
 		on request.openModalALCarouselElementInfo ModalALCarouselElementInfo [MessageBox]
 		{
 			window 'ModalALCarouselElementInfo'
@@ -638,8 +667,6 @@ PreBattleOriginal [Context]
 			priority 30
 		}
 
-		on request.showRules ModalWindowRules [ModalWindowRules]
-
 		on request.openHireCrewWindow HireCrew [HireCrew]
 		
 		on request.openRetrainCrewWindow RetrainCrew [RetrainCrew]
@@ -694,7 +721,20 @@ PreBattleOriginal [Context]
 			data '{"type" : 0 }'
 			on gui.btn_ok resend action.*
 		}
-		
+
+		on request.buyAndInstallSignalModal BuyAndInstallSignal [WindowWithPricesAttention]
+		{ 
+			window 'ModalWindowBuySignal'
+			on request.installSignal send action.installSignal
+			on request.buyAndInstallSignal send action.buyAndInstallSignal
+		}
+
+		on request.buySignalModal BuySignal [WindowWithPricesAttention]
+		{ 
+			window 'ModalWindowBuySignal'
+			on request.buySignal send action.buySignal
+		}
+
 		on request.buyAndInstallCamouflageModal BuyExterior [WindowWithPricesAttention]
 		{ 
 			window 'ModalWindowBuyCamouflage'
@@ -805,6 +845,8 @@ PreBattleOriginal [Context]
 		}
 
 		on [request.showSnowflakesModal request.snowflakesTakeBonuses] ModalWindowSnowflakesTakeBonuses [ModalWindowSnowflakesTakeBonuses]
+
+		on request.showRules ModalWindowRules [ModalWindowRules]
 
 		on cnxt.showNotReadyPlayers NotReadyPlayers [NotReadyPlayers]
 		on request.openChoosePrimeTimeWindow ModalWindowChoosePrimeTime [ModalWindowChoosePrimeTime]
