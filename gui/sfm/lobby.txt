@@ -275,6 +275,7 @@ PreBattleOriginal [Context]
 			consume [key.ESCAPE.down gui.btn_cancel gui.buttonClose]
 			on [gui.buttonClose gui.btn_cancel key.ESCAPE.down] send router.navigateTo '{"route": "PORT"}'
 
+			on sys.exit send action.resetExteriorPreview
 			on sys.exit send action.clearExcursion
 			on sys.exit send sfm.unfreezeMainAL
 
@@ -414,9 +415,9 @@ PreBattleOriginal [Context]
 
 			on cnxt.observeTerritory TerritoryObserver
 			{
-				consume [key.ESCAPE.down gui.btn_cancel]
+				consume [key.ESCAPE.down gui.btn_cancel gui.btn_back]
 				on sys.exit send action.resetViewToDefault
-				leave on [key.ESCAPE.down gui.btn_cancel]
+				leave on [key.ESCAPE.down gui.btn_cancel gui.btn_back]
 			}
 
 			on request.showStrategicActionsOnboarding ModalWindowStrategicActionsOnboarding [ModalWindowStrategicActionsOnboarding]
