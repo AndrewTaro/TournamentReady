@@ -499,6 +499,11 @@ PreBattleOriginal [Context]
 			on sfm.battlePassSplashScreenExited send action.setPromoExited
 		}
 
+		on cnxt.showDailyRewardsSplashScreen ModalWindowDailyRewardsSplashScreen [ModalWindowDailyRewardsSplashScreen]
+		{
+			priority 41
+		}
+
 		on cnxt.showFeatureSplash ModalWindowFeatureSplash [MessageBox]
 		{
 			priority 41
@@ -1021,6 +1026,7 @@ PreBattleOriginal [Context]
 			context 'DockComponents'
 			leave on cnxt.enterArena
 		}
+		on gui.showNewbieGifts send router.navigateTo '{"route": "NEWBIE_GIFTS"}'
 	}
 
 	on cnxt.continuousBattleEnterBecameAvailable ContinuousBattleEnter
