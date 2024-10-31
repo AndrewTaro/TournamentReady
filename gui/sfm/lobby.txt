@@ -45,6 +45,11 @@ LoadingOnlineBattle [LoadingBattle]
 		context 'BattleData'
 		leave on cnxt.avatarLeavesWorld
 
+		on sys.enter Markers
+		{
+			context 'Markers'
+		}
+
 		on cnxt.diplomacy Diplomacy
 		{
 			on cnxt.alive send sfm.activateDiplomacy 
@@ -130,6 +135,12 @@ PreBattleOriginal [Context]
 		on [cnxt.showSpaceScreenshot sfm.showSpaceScreenshot] PortScreenshot [BaseScreenshot]
 		{
 			on [cnxt.finishVehicleLoading cnxt.showStrategicActions] send sfm.leaveScreenshot
+		}
+
+		on cnxt.beginLobbySpaceChangingAnimation FreezeNavigation [InputConsumer]
+		{
+			consume [router.navigateTo action.navigateTo]
+			leave on [cnxt.finishLobbySpaceChangingAnimation cnxt.enterBalancer]
 		}
 
 		on sfm.showShipyardScreenshot ShipyardScreenshot [BaseScreenshot]
@@ -441,6 +452,7 @@ PreBattleOriginal [Context]
 		
 		on cnxt.enterBalancer RandomBattle [RandomBattle]
 		{
+			priority 45
 			on sys.enter send router.navigateTo '{"route": "BALANCER"}'
 			on sys.exit send router.navigateTo '{"route": "MAIN"}'
 		}
@@ -460,10 +472,10 @@ PreBattleOriginal [Context]
 
 			on request.showLootboxTypes ModalWindowLootboxTypes [ModalWindowLootboxTypes]
 
-			on action.lockBargeControls BargeLockedState
+			on [action.lockBargeControls cnxt.beginLobbySpaceChangingAnimation] BargeLockedState
 			{
 				consume [key.ESCAPE.down gui.btn_cancel gui.buttonClose router.navigateTo]
-				leave on [action.unlockBargeControls cnxt.enterBalancer]
+				leave on [action.unlockBargeControls cnxt.finishLobbySpaceChangingAnimation cnxt.enterBalancer]
 			}
 
 			leave on nav.exitBarge
@@ -478,6 +490,7 @@ PreBattleOriginal [Context]
 		{
 			window 'ChatNotificationsPanel'
 		}
+
 
 		##################### MODAL WINDOWS #######################
 
@@ -578,8 +591,6 @@ PreBattleOriginal [Context]
 		on request.showRenameReplaysWindow ModalWindowRenameReplays [ModalWindowRenameReplays]
 
 		on [action.openLootboxes action.openLootboxesByType] ModalWindowOpenAllLootBoxes [ModalWindowOpenAllLootBoxes]
-
-		on [request.openRewardsModal] ModalWindowRewardContainer [ModalWindowRewardContainer]
 
 		on nav.enterSse WindowSse [ModalWindowSse]
 
@@ -711,6 +722,12 @@ PreBattleOriginal [Context]
 			window 'ModalWindowModernizations'
 			on request.setModernizations send action.setModernizations
 		}
+
+		on [request.startPurchaseModuleST] ModalPurchaseWindowST [UnboundDialogYesNo]
+		{
+			window 'ModalPurchaseWindowST'
+			on request.setSTModule send action.moduleST.purchase
+		}
 		
 		on request.leaveDivision leaveDivisionYesNo [UnboundDialogYesNo]
 		{
@@ -741,11 +758,12 @@ PreBattleOriginal [Context]
 			on request.buySignal send action.buySignal
 		}
 
-		on request.buyAndInstallCamouflageModal BuyExterior [WindowWithPricesAttention]
+		on request.buyAndInstallExteriorModal BuyExterior [WindowWithPricesAttention]
 		{ 
-			window 'ModalWindowBuyCamouflage'
+			window 'ModalWindowBuyAndInstallExterior'
 			on request.installCamouflage send action.installCamouflage
 			on request.buyAndInstallCamouflage send action.buyAndInstallCamouflage
+			on request.linkAndInstallShipDestruction send action.linkAndInstallShipDestruction
 		}
 
 		on request.installRecommendedModernizationsModal BuyAndInstallRecommendedModernizations [WindowWithPricesAttention]
@@ -780,6 +798,7 @@ PreBattleOriginal [Context]
 
 		on request.buyObjectWindow BuyCollectionObjectWindow [BuyCollectionObjectWindow]
 
+		on request.buyMultipleObjectsWindow ModalWindowBuyMultipleCollectionObjectsWindow [ModalWindowBuyMultipleCollectionObjectsWindow]
 
 		on [cnxt.openCollectionDescriptionWindow request.openCollectionDescriptionWindow]  ModalCollectionDescriptionWindow [ModalCollectionDescriptionWindow]
 		{
@@ -803,6 +822,11 @@ PreBattleOriginal [Context]
 		{
 			on gui.btn_ok send action.leaveTrainingRoom
 			leave on cnxt.closeTrainingRoom
+		}
+
+		on nav.enterTransparent ModalSubrouteWindow [ModalSubrouteWindow]
+		{
+			leave on nav.exitTransparent
 		}
 		
 		on cnxt.trainingRoomCreationFailedByLimit RoomCreationFailedByLimitAlert [RoomCreationFailedByLimitAlert]
@@ -850,9 +874,11 @@ PreBattleOriginal [Context]
 			leave on sfm.snowflakesIntroWasShown
 		}
 
-		on [request.showSnowflakesModal request.snowflakesTakeBonuses] ModalWindowSnowflakesTakeBonuses [ModalWindowSnowflakesTakeBonuses]
+		on [request.showSnowflakesModal] ModalWindowSnowflakesTakeBonuses [ModalWindowSnowflakesTakeBonuses]
 
 		on request.showRules ModalWindowRules [ModalWindowRules]
+
+		on [request.openRewardsModal] ModalWindowRewardContainer [ModalWindowRewardContainer]
 
 		on cnxt.showNotReadyPlayers NotReadyPlayers [NotReadyPlayers]
 		on request.openChoosePrimeTimeWindow ModalWindowChoosePrimeTime [ModalWindowChoosePrimeTime]
@@ -866,6 +892,38 @@ PreBattleOriginal [Context]
 			on gui.btn_ok resend action.*
 		}
 
+		on cnxt.lockBattleTypeChange FreezeNavigationEventHub
+		{
+			consume [action.setBattleType action.setPortPreset]
+			leave on [cnxt.unlockBattleTypeChange cnxt.enterBalancer]
+		}
+
+		on action.enterEventHub EventHub
+		{
+			on [request.showEHLoader] EventHubEnter
+			{
+				window 'WaitingWindow'
+				on sys.enter send sfm.showSpaceScreenshot
+				leave on cnxt.finishVehicleLoading
+			}
+
+			on request.showWindowEventHubOnboarding ModalWindowEventHubOnboarding [ModalWindowEventHubOnboarding]
+
+			on [request.showWindowEventHubOnboardingAnimation] ModalWindowEventHubOnboardingAnimation
+			{
+				window 'ModalWindowEventHubOnboardingAnimation'
+				leave on request.animationEnded
+			}
+
+			on [request.showEHUnloader] EventHubLeave
+			{
+				window 'WaitingWindow'
+				on sys.enter send sfm.showSpaceScreenshot
+				on cnxt.finishVehicleLoading send sfm.readyToLeaveEventHub
+			}
+
+			leave on [action.exitEventHub sfm.readyToLeaveEventHub]
+		}
 		##################### MODAL WINDOWS #######################
 
 
@@ -917,6 +975,11 @@ PreBattleOriginal [Context]
 		{
 			leave on [cnxt.playerBecameAvatar sfm.showReplay]
 			context 'Dock3D'
+
+			on sys.enter Markers
+			{
+				context 'Markers'
+			}
 		}
 	}
 	
@@ -990,6 +1053,11 @@ PreBattleOriginal [Context]
 			on sys.enter BattleData
 			{
 				context 'BattleData'
+
+				on sys.enter Markers
+				{
+					context 'Markers'
+				}
 			}
 
 			leave on cnxt.avatarLeavesWorld
