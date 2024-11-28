@@ -7,10 +7,10 @@ LoadingBattle
 {
 	context 'LoadingBattle'
 	leave on [sfm.goToDock cnxt.enterBalancer cnxt.failEnqueue]
-	
-	on cnxt.createdReallyAccount # reconnect when enterArena was called 
+
+	on cnxt.createdReallyAccount # reconnect when enterArena was called
 		send sfm.goToDock
-	
+
 	on sys.enter Wait [Wait]
 	{
 		leave on [cnxt.bgLoaded cnxt.showBattle]
@@ -52,7 +52,7 @@ LoadingOnlineBattle [LoadingBattle]
 
 		on cnxt.diplomacy Diplomacy
 		{
-			on cnxt.alive send sfm.activateDiplomacy 
+			on cnxt.alive send sfm.activateDiplomacy
 		}
 	}
 
@@ -65,6 +65,11 @@ LoadingOnlineBattle [LoadingBattle]
 PreBattleOriginal [Context]
 {
 	context 'PreBattle'
+
+	on sys.enter Gameface
+	{
+		context 'Gameface'
+	}
 
 	on sys.enter send action.authenticateWebBrowser
 
@@ -90,7 +95,7 @@ PreBattleOriginal [Context]
 	{
 		context 'RankedBattles'
 	}
-	
+
 	on cnxt.gameParamsSync Config
 	{
 		context 'Config'
@@ -105,15 +110,22 @@ PreBattleOriginal [Context]
 			leave on cnxt.leaveDivision
 		}
 	}
-	
+
 	on sys.enter PrimeTime
 	{
 		context 'PrimeTime'
 	}
-	
+
 	on sys.enter VoiceChatEnabled
 	{
 		context 'VoiceChat'
+	}
+
+	on cnxt.becomePlayerAccount PlayerAccount
+	{
+		context 'NewYear25'
+
+		leave on cnxt.becomeNonPlayerAccount
 	}
 
 	on [cnxt.createdReallyAccount sfm.goToDock cnxt.leaveBattleSession] Lobby [Scene] # 1 usual from login 2 usual from battle 3 reconnect without entering arena
@@ -131,7 +143,7 @@ PreBattleOriginal [Context]
 		}
 
 		on sys.enter send sfm.wakeupBrowser
-		
+
 		on [cnxt.showSpaceScreenshot sfm.showSpaceScreenshot] PortScreenshot [BaseScreenshot]
 		{
 			on [cnxt.finishVehicleLoading cnxt.showStrategicActions] send sfm.leaveScreenshot
@@ -153,7 +165,7 @@ PreBattleOriginal [Context]
 			context 'TrainingRooms'
 			on cnxt.enterBalancer send action.hideTrainingRoomWindow
 		}
-		
+
 		on cnxt.startVehicleLoading WaitLoadingDock [WaitLoading]
 
 		on nav.enterClans ClansInset [WebBrowserBase]
@@ -280,7 +292,7 @@ PreBattleOriginal [Context]
 			on cnxt.finishVehicleLoading send action.ShipArmor.hideArmor
 			leave on cnxt.finishVehicleLoading
 		}
-		
+
 		on nav.enterShipPreview ShipPreview
 		{
 			consume [key.ESCAPE.down gui.btn_cancel gui.buttonClose]
@@ -305,7 +317,7 @@ PreBattleOriginal [Context]
 			on key.ESCAPE.down send router.navigateTo '{"route": "PORT"}'
 
 			on sys.exit send action.GiftListsProxy.giftsScreenShown
-			
+
 			leave on nav.exitNewbieGifts
 		}
 
@@ -359,6 +371,8 @@ PreBattleOriginal [Context]
 			leave on [action.SteamContext.resetCompletion cnxt.enterBalancer]
 		}
 
+		on request.openNewYearHub ModalWindowMainNewYearHubContainer [ModalWindowMainNewYearHubContainer]
+
 		on request.showModalShipsBranchesFeatures ModalWindowShipsBranchesFeatures [ModalWindowShipsBranchesFeatures]
 
 		on request.showModalParagonsDropBranch ModalWindowParagonsDropBranch [ModalWindowParagonsDropBranch]
@@ -374,9 +388,9 @@ PreBattleOriginal [Context]
 		{
 			priority 3
 			window 'ModalWindowTrainingRoom'
-			
+
 			on [key.ESCAPE.down gui.btn_cancel] send request.closeTrainingRoom
-			
+
 			leave on	[cnxt.closeTrainingRoom request.showTrainingRoomsList]
 			consume		[key.ESCAPE.down gui.btn_cancel nav.enterPortal]
 
@@ -391,21 +405,21 @@ PreBattleOriginal [Context]
 				leave on [cnxt.hideNotReadyPlayers sfm.startBattleAlertWindowClosed sfm.goToDock cnxt.failEnqueue]
 			}
 		}
-		
+
 		on action.joinPasswordedRoom ModalWindowTrainingRoomPasswordEnter [MessageBox]
 		{
 			window 'ModalWindowTrainingRoomPasswordEnter'
-			
+
 			leave on [request.showTrainingRoomsList cnxt.showTrainingRoom request.showModalRoomDoesNotExist]
 		}
 
 		on request.showModalRoomDoesNotExist ModalRoomDoesNotExist [MessageBox]
 		{
 			window 'ModalRoomDoesNotExist'
-			
+
 			leave on [key.ESCAPE.down gui.btn_cancel request.showTrainingRoomsList]
 		}
-		
+
 		on cnxt.showWaitingRoomList WaitingTrainingRoom [WaitingTrainingRoom]
 
 		on action.showModalWindowControlBlocker ModalWindowControlBlocker [ModalWindowControlBlocker]
@@ -447,9 +461,9 @@ PreBattleOriginal [Context]
 		{
 			window 'ModalALCarouselElementInfo'
 		}
-		
+
 		on cnxt.showCampaignDone ModalWindowCampaignDone [ModalWindowCampaignDone]
-		
+
 		on cnxt.enterBalancer RandomBattle [RandomBattle]
 		{
 			priority 45
@@ -460,7 +474,7 @@ PreBattleOriginal [Context]
 		on nav.enterBarge Barge [SubWindow]
 		{
 			on sys.enter send action.LootboxProxy.moveToBarge
-			
+
 			#WWSD-98633 Окно контейнеров отображается поверх кланового портала
 			#WWSD-147330 Armory открывается не в full screen при переходе из баннера на барже
 			on action.moveFromRewards send router.navigateTo '{"route": "PORT"}'
@@ -479,6 +493,16 @@ PreBattleOriginal [Context]
 			}
 
 			leave on nav.exitBarge
+		}
+
+		on nav.enterChristmasTreeNY ModalWindowChristmasTree [ModalWindowChristmasTree]
+		{
+			leave on nav.exitChristmasTreeNY
+		}
+
+		on nav.enterShipTokenNY ModalWindowShipToken [ModalWindowShipToken]
+		{
+			leave on nav.exitShipTokenNY
 		}
 
 		on request.showBattlePassMain ModalWindowBattlePassMain [ModalWindowBattlePassMain]
@@ -586,6 +610,12 @@ PreBattleOriginal [Context]
 			priority 42
 		}
 
+		on action.openAdventCalendarModal ModalWindowAdventCalendar [ModalWindowAdventCalendar]
+		{
+			priority 42
+			on sys.exit send action.onCloseAdventCalendarModal
+		}
+
 		on [sfm.hideReplay request.showReplaysWindow] ModalWindowReplays [ModalWindowReplays]
 
 		on request.showRenameReplaysWindow ModalWindowRenameReplays [ModalWindowRenameReplays]
@@ -678,14 +708,14 @@ PreBattleOriginal [Context]
 			on request.sellShip send action.sellShip
 			on [request.* gui.btn_cancel key.ESCAPE.down] send action.sellShipClosed
 		}
-		
+
 		on [request.modalDogTag] ModalWindowDogTag [ModalWindowDogTag]
 		{
 			priority 30
 		}
 
 		on request.openHireCrewWindow HireCrew [HireCrew]
-		
+
 		on request.openRetrainCrewWindow RetrainCrew [RetrainCrew]
 
 		on request.crewFastTraining CrewFastTraining [CrewFastTraining]
@@ -699,16 +729,16 @@ PreBattleOriginal [Context]
 
 			on sys.exit send action.fireCrewWindowClosed
 		}
-		
+
 		on request.learnSkills ModalWindowLearnSkills [MessageBox]
 		{
 			window 'ModalWindowLearnSkills'
 			on request.learnSelectedSkills send action.learnSelectedSkills
 			leave on [gui.btn_cancel key.ESCAPE.down request.learnSelectedSkills]
 		}
-		
+
 		on request.freeSkillPointsWindow FreeSkillPointsYesNo [FreeSkillPointsYesNo]
-		
+
 		on request.increaseBarracksCapacity IncreaseBarracksCapacityYesNo [IncreaseBarracksCapacityYesNo]
 
 		on request.openModalWindowCrewInfo ModalWindowCrewInfo [Modal]
@@ -723,43 +753,43 @@ PreBattleOriginal [Context]
 			on request.setModernizations send action.setModernizations
 		}
 
-		on [request.startPurchaseModuleST] ModalPurchaseWindowST [UnboundDialogYesNo]
+        on [request.startPurchaseModuleST] ModalPurchaseWindowST [UnboundDialogYesNo]
 		{
 			window 'ModalPurchaseWindowST'
 			on request.setSTModule send action.moduleST.purchase
 		}
-		
+
 		on request.leaveDivision leaveDivisionYesNo [UnboundDialogYesNo]
 		{
 			data '{"type" : 0}'
 			on gui.btn_ok resend action.*
 		}
 		on request.dismissDivision dismissDivisionYesNo [UnboundDialogYesNo]
-		{ 
+		{
 			data '{"type" : 0 }'
 			on gui.btn_ok resend action.*
 		}
 		on request.kickPlayerFromDivision kickPlayerFromDivisionYesNo [UnboundDialogYesNo]
-		{ 
+		{
 			data '{"type" : 0 }'
 			on gui.btn_ok resend action.*
 		}
 
 		on request.buyAndInstallSignalModal BuyAndInstallSignal [WindowWithPricesAttention]
-		{ 
+		{
 			window 'ModalWindowBuySignal'
 			on request.installSignal send action.installSignal
 			on request.buyAndInstallSignal send action.buyAndInstallSignal
 		}
 
 		on request.buySignalModal BuySignal [WindowWithPricesAttention]
-		{ 
+		{
 			window 'ModalWindowBuySignal'
 			on request.buySignal send action.buySignal
 		}
 
 		on request.buyAndInstallExteriorModal BuyExterior [WindowWithPricesAttention]
-		{ 
+		{
 			window 'ModalWindowBuyAndInstallExterior'
 			on request.installCamouflage send action.installCamouflage
 			on request.buyAndInstallCamouflage send action.buyAndInstallCamouflage
@@ -779,7 +809,7 @@ PreBattleOriginal [Context]
 			on request.buyMultiboost send action.buyMultiboost
 			on request.linkMultiboost send action.linkMultiboost
 		}
-		
+
 		on request.openModalWindowSelectPort BackgroundModalWindowPort [BackgroundModalWindowPort]
 		{
 			priority 30
@@ -817,18 +847,21 @@ PreBattleOriginal [Context]
 			priority 13
 			window 'ModalCvCSeasonEnds'
 		}
-		
+
 		on cnxt.leaveTrainingRoomYesNo leaveTrainingRoomYesNo [UnboundDialogYesNo]
 		{
 			on gui.btn_ok send action.leaveTrainingRoom
 			leave on cnxt.closeTrainingRoom
 		}
 
+
 		on nav.enterTransparent ModalSubrouteWindow [ModalSubrouteWindow]
 		{
 			leave on nav.exitTransparent
 		}
-		
+
+		on request.openChristmasTreeSSEAndRewardsModal ModalWindowChristmasTreeSSEAndRewards [ModalWindowChristmasTreeSSEAndRewards]
+
 		on cnxt.trainingRoomCreationFailedByLimit RoomCreationFailedByLimitAlert [RoomCreationFailedByLimitAlert]
 
 		on cnxt.startBattleWithoutCommanderAlert ModalWindowStartBattleWithoutCommander [Modal]
@@ -882,7 +915,7 @@ PreBattleOriginal [Context]
 
 		on cnxt.showNotReadyPlayers NotReadyPlayers [NotReadyPlayers]
 		on request.openChoosePrimeTimeWindow ModalWindowChoosePrimeTime [ModalWindowChoosePrimeTime]
-		
+
 		on gui.btn_guide send router.navigateTo '{"route": "PORTAL", "data": {"url": "guidesInGame"}}'
 		on gui.btn_exit_game ConfirmExitGameModalWindow [ConfirmExitGameModalWindow]
 
@@ -970,7 +1003,7 @@ PreBattleOriginal [Context]
 
 		on up.showDisconnect ConfirmDisconnectModalWindow [ConfirmDisconnectModalWindow]
 		on up.showSwitchAccount ConfirmSwitchAccountModalWindow [ConfirmSwitchAccountModalWindow]
-		
+
 		on [sfm.hideReplay sfm.activateDock3D] Dock3D
 		{
 			leave on [cnxt.playerBecameAvatar sfm.showReplay]
@@ -982,7 +1015,7 @@ PreBattleOriginal [Context]
 			}
 		}
 	}
-	
+
 	on action.showEventOutdatedWindow ModalWindowEventOutdated [MessageBox]
 	{
 		window 'ModalWindowEventOutdated'
@@ -994,7 +1027,7 @@ PreBattleOriginal [Context]
 		on sfm.goToDock send sfm.activateDock3D
 		on cnxt.leaveBalancer send sfm.activateDock3D
 	}
-	
+
 	on  cnxt.enterArena BattleLoading [LoadingOnlineBattle]
 
 	on [cnxt.battleStoppedUnexpectedly up.exitBattle request.exitBattleAndTryEnterBalancer] WaitDockLoading [Scene]
@@ -1002,11 +1035,11 @@ PreBattleOriginal [Context]
 		window 'WaitingWindow'
 		leave on [cnxt.enterBalancer cnxt.finishVehicleLoading cnxt.showWarningModal cnxt.startBattleWithoutCommanderAlert cnxt.startBattleWithoutSkillsAlert]
 	}
-	
+
 	on [sys.enter cnxt.leaveBalancer sfm.goToDock ] Autokick
 	{
 		context 'Autokick'
-		
+
 		leave on [cnxt.enterArena cnxt.enterBalancer]
 	}
 
@@ -1155,7 +1188,7 @@ RandomBattle [Modal]
 	consume cnxt.leaveBattleSession
 
 	leave on [cnxt.leaveBalancer cnxt.bgLoaded sfm.goToDock]
-	
+
 	on cnxt.leaveBattleSession send cnxt.showNotification '{ "title" : "IDS_BATTLE_SESSION_LEAVE_REASON_ARENA_FAILED_TITLE", "subtitle" : "IDS_BATTLE_SESSION_LEAVE_REASON_ARENA_FAILED", "type" : 1 }'
 	on cnxt.leaveBattleSession send sfm.goToDock
 
