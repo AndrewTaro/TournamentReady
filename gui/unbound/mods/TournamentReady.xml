@@ -25,7 +25,6 @@
 		<bind name="watchDH" value="'currentShipId'; ['shipSelectionEntity.shipSelection.evShipUpdate']; shipSelectionEntity.shipSelection.currentShipId"/>
 		<bind name="primaryEntityDH" value="'shipEntity'; CC.ship; currentShipId"/>
 		<bind name="watchDH" value="'subtype'; ['shipEntity.ship.evUpdate']; shipEntity.ship.subtype"/>
-		<bind name="watch" value="'isDetonatableClass'; isIn(subtype, ['Cruiser', 'Destroyer', 'Battleship'])"/>
 		<!--current crew-->
 		<bind name="watchDH" value="'crewId'; ['shipEntity.ownShip.evCrewChanged']; shipEntity.ownShip.crewId"/>
 		<bind name="primaryEntityDH" value="'crewEntity'; CC.crew; crewId"/>
@@ -44,16 +43,15 @@
 		<bind name="watch" value="'isCrewValid'; hasCrew &amp;&amp; hasMaxSkillPoints &amp;&amp; isFullyAdapted"/>
 
 		<!--current signals-->
-		<bind name="primaryEntityDH" value="'detoSignal'; CC.signal; 4284313520"/>
-		<bind name="watchDH" value="'hasDetoSignal'; ['detoSignal.signal.evUpdated']; detoSignal.signal.isInstalled"/>
+		<!--bind name="primaryEntityDH" value="'detoSignal'; CC.signal; 4284313520"/-->
+		<!--bind name="watchDH" value="'hasDetoSignal'; ['detoSignal.signal.evUpdated']; detoSignal.signal.isInstalled"/-->
 		<bind name="watchDH" value="'maxSignals'; ['shipEntity.ownShip.evUpdateConfig']; shipEntity.ownShip.sigLimit"/>
 		<bind name="collectionDH" value="CC.signal; 'installedSignalsCollection'; 'isInstalled'"/>
 		<bind name="collectionDH" value="CC.signal; 'expiredSignalsCollection'; 'isInstalled.expired'"/>
 		<bind name="watch" value="'allSignalsValid'; expiredSignalsCollection.length == 0"/>
 		<bind name="watch" value="'allSignalsInstalled'; installedSignalsCollection.length == maxSignals"/>
-		<bind name="watch" value="'isDetonatable'; isDetonatableClass &amp;&amp; !hasDetoSignal"/>
 
-		<bind name="watch" value="'isSignalValid'; allSignalsValid &amp;&amp; allSignalsInstalled &amp;&amp; !isDetonatable"/>
+		<bind name="watch" value="'isSignalValid'; allSignalsValid &amp;&amp; allSignalsInstalled"/>
 		
 		<!--current modernizations-->
 		<bind name="collectionDH" value="CC.equipmentSlot; 'modernizationsCollection'; 'bySlotType.1'"/>
@@ -214,13 +212,6 @@
 						<bind name="text" value="tr('IDS_WARNING_SIGNALS_EXPIRED') + ': ' + expiredSignals"/>
 					</block>
 				</block>
-				<block>
-					<bind name="visible" value="isDetonatable"/>
-					<block type="text">
-						<styleClass value="$TournamentReadyTextDefaultBold21NM"/>
-						<default_text value="IDS_PARAMS_MODIFIER_PMDETONATIONPROB"/>
-					</block>
-				</block>
 			</block>
 		</block>
 	</block>
@@ -244,7 +235,6 @@
 		<!--current ship-->
 		<bind name="primaryEntityDH" value="'shipEntity'; CC.ship; shipId"/>
 		<bind name="watchDH" value="'subtype'; ['shipEntity.ship.evUpdate']; shipEntity.ship.subtype"/>
-		<bind name="watch" value="'isDetonatableClass'; isIn(subtype, ['Cruiser', 'Destroyer', 'Battleship'])"/>
 		<!--current crew-->
 		<bind name="watchDH" value="'selecetedCrewId'; ['shipEntity.ownShip.evCrewChanged']; shipEntity.ownShip.crewId"/>
 		<bind name="primaryEntityDH" value="'crewEntity'; CC.crew; selecetedCrewId"/>
@@ -265,16 +255,15 @@
 
 		<!--current signals-->
 		<bind name="watchDH" value="'maxSignals'; ['shipEntity.ownShip.evUpdateConfig']; shipEntity.ownShip.sigLimit"/>
-		<bind name="primaryEntityDH" value="'detoSignal'; CC.signal; 4284313520"/>
-		<bind name="watchDH" value="'hasDetoSignal'; ['detoSignal.signal.evUpdated']; detoSignal.signal.isInstalled"/>
+		<!--bind name="primaryEntityDH" value="'detoSignal'; CC.signal; 4284313520"/-->
+		<!--bind name="watchDH" value="'hasDetoSignal'; ['detoSignal.signal.evUpdated']; detoSignal.signal.isInstalled"/-->
 		<bind name="collectionDH" value="CC.signal; 'installedSignalsCollection'; 'isInstalled'"/>
 		<bind name="collectionDH" value="CC.signal; 'expiredSignalsCollection'; 'isInstalled.expired'"/>
 		<bind name="watch" value="'allSignalsValid'; expiredSignalsCollection.length == 0"/>
 		<bind name="watch" value="'allSignalsInstalled'; installedSignalsCollection.length == maxSignals"/>
 		<bind name="watch" value="'emptySignals'; maxSignals - installedSignalsCollection.length"/>
-		<bind name="watch" value="'isDetonatable'; isDetonatableClass &amp;&amp; !hasDetoSignal"/>
 
-		<bind name="watch" value="'isSignalValid'; allSignalsValid &amp;&amp; allSignalsInstalled &amp;&amp; !isDetonatable"/>
+		<bind name="watch" value="'isSignalValid'; allSignalsValid &amp;&amp; allSignalsInstalled"/>
 		
 		<!--current modernizations-->
 		<bind name="collectionDH" value="CC.equipmentSlot; 'modernizationsCollection'; 'bySlotType.1'"/>
@@ -386,7 +375,6 @@
 												expiredSignals: expiredSignalsCollection.length,
 												emptySignals: emptySignals,
 												maxSignals: maxSignals,
-												isDetonatable: isDetonatable,
 												}"/>
 				<!---->	
 			</block>
