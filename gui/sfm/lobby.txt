@@ -371,7 +371,9 @@ PreBattleOriginal [Context]
 			leave on [action.SteamContext.resetCompletion cnxt.enterBalancer]
 		}
 
-		on request.openNewYearHub ModalWindowMainNewYearHubContainer [ModalWindowMainNewYearHubContainer]
+		on request.openNewYearHub ModalWindowFlagshipHub [ModalWindowFlagshipHub]
+		
+		on request.openFlagshipHub ModalWindowFlagshipHub [ModalWindowFlagshipHub]
 
 		on request.showModalShipsBranchesFeatures ModalWindowShipsBranchesFeatures [ModalWindowShipsBranchesFeatures]
 
