@@ -123,8 +123,6 @@ PreBattleOriginal [Context]
 
 	on cnxt.becomePlayerAccount PlayerAccount
 	{
-		context 'NewYear25'
-
 		leave on cnxt.becomeNonPlayerAccount
 	}
 
@@ -331,6 +329,11 @@ PreBattleOriginal [Context]
 			leave on request.showCrewManagement
 		}
 
+		on nav.enterCollectionPreview CollectionPreviewModal [CollectionPreviewModal]
+		{
+			leave on nav.exitCollectionPreview
+		}
+
 		on request.showPreviewWindow ViewObjectWindow [ViewObjectWindow]
 
 		# окно профиля игрока
@@ -371,8 +374,6 @@ PreBattleOriginal [Context]
 			leave on [action.SteamContext.resetCompletion cnxt.enterBalancer]
 		}
 
-		on request.openNewYearHub ModalWindowFlagshipHub [ModalWindowFlagshipHub]
-		
 		on request.openFlagshipHub ModalWindowFlagshipHub [ModalWindowFlagshipHub]
 
 		on request.showModalShipsBranchesFeatures ModalWindowShipsBranchesFeatures [ModalWindowShipsBranchesFeatures]
@@ -495,16 +496,6 @@ PreBattleOriginal [Context]
 			}
 
 			leave on nav.exitBarge
-		}
-
-		on nav.enterChristmasTreeNY ModalWindowChristmasTree [ModalWindowChristmasTree]
-		{
-			leave on nav.exitChristmasTreeNY
-		}
-
-		on nav.enterShipTokenNY ModalWindowShipToken [ModalWindowShipToken]
-		{
-			leave on nav.exitShipTokenNY
 		}
 
 		on request.showBattlePassMain ModalWindowBattlePassMain [ModalWindowBattlePassMain]
@@ -861,8 +852,6 @@ PreBattleOriginal [Context]
 		{
 			leave on nav.exitTransparent
 		}
-
-		on request.openChristmasTreeSSEAndRewardsModal ModalWindowChristmasTreeSSEAndRewards [ModalWindowChristmasTreeSSEAndRewards]
 
 		on cnxt.trainingRoomCreationFailedByLimit RoomCreationFailedByLimitAlert [RoomCreationFailedByLimitAlert]
 
