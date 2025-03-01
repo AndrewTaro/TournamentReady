@@ -374,7 +374,7 @@ PreBattleOriginal [Context]
 			leave on [action.SteamContext.resetCompletion cnxt.enterBalancer]
 		}
 
-		on request.openFlagshipHub ModalWindowFlagshipHub [ModalWindowFlagshipHub]
+		on request.openEventWikiPage ModalWindowEventWiki [ModalWindowEventWiki]
 
 		on request.showModalShipsBranchesFeatures ModalWindowShipsBranchesFeatures [ModalWindowShipsBranchesFeatures]
 
@@ -496,6 +496,16 @@ PreBattleOriginal [Context]
 			}
 
 			leave on nav.exitBarge
+		}
+
+		on request.openMiniDockyardWindow ModalWindowMiniDockyard [ModalWindowMiniDockyard]
+		{
+			priority 99
+		}
+
+		on nav.enterMiniDockyardWindow ModalWindowMiniDockyard [ModalWindowMiniDockyard]
+		{
+			leave on nav.exitMiniDockyardWindow
 		}
 
 		on request.showBattlePassMain ModalWindowBattlePassMain [ModalWindowBattlePassMain]
@@ -814,6 +824,8 @@ PreBattleOriginal [Context]
 			on request.buyPremiumAccount send action.buyPremiumAccount
 		}
 
+		on request.openModalWindowChangeAccountPort ModalWindowChangeAccountPort [ModalWindowChangeAccountPort]
+
 		on cnxt.showVoteWindow ModalWindowVote [MessageBox]
 		{
 			window 'ModalWindowVote'
@@ -899,6 +911,16 @@ PreBattleOriginal [Context]
 		}
 
 		on [request.showSnowflakesModal] ModalWindowSnowflakesTakeBonuses [ModalWindowSnowflakesTakeBonuses]
+
+		on request.openMiniDockyardOnboardingWindow ModalWindowMiniDockyardOnboarding [ModalWindowMiniDockyardOnboarding]
+
+		on request.openMiniDockyardGetAccessWindow ModalWindowMiniDockyardGetAccess [ModalWindowMiniDockyardGetAccess]
+
+		on request.openMiniDockyardPurchaseModuleWindow ModalWindowMiniDockyardPurchaseModule [ModalWindowMiniDockyardPurchaseModule]
+
+		on request.openMiniDockyardEquipmentWindow ModalWindowMiniDockyardEquipment [ModalWindowMiniDockyardEquipment]
+
+		on request.openMiniDockyardPurchaseShipWindow ModalWindowMiniDockyardPurchaseShip [ModalWindowMiniDockyardPurchaseShip]
 
 		on request.showRules ModalWindowRules [ModalWindowRules]
 
