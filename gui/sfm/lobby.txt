@@ -513,6 +513,8 @@ PreBattleOriginal [Context]
 			priority 99
 		}
 
+		on nav.enterAdmiralsDeck ModalWindowAdmiralsDeck [ModalWindowAdmiralsDeck]
+
 		on sys.enter ChatNotificationsPanelWindow
 		{
 			window 'ChatNotificationsPanel'
@@ -657,6 +659,8 @@ PreBattleOriginal [Context]
 		on request.showSseClaimWindow ModalWindowClaimSseReward [ModalWindowClaimSseReward]
 
 		on gui.buttonResearchShip ModalWindowResearchShip [ModalWindowResearchShip]
+
+		on cnxt.showCardSelectorDock ModalWindowDockCardSelector [ModalWindowDockCardSelector]
 
 		on gui.buttonPurchaseShip ModalWindowPurchaseShip [WindowWithPricesAttention]
 		{
@@ -971,7 +975,6 @@ PreBattleOriginal [Context]
 			leave on [action.exitEventHub sfm.readyToLeaveEventHub]
 		}
 		##################### MODAL WINDOWS #######################
-
 
 		on cnxt.firstBattle FirstBattleChooseShip [Scene]
 		{
