@@ -478,16 +478,15 @@ PreBattleOriginal [Context]
 		{
 			on sys.enter send action.LootboxProxy.moveToBarge
 
+			on cnxt.gamefaceInputOn GamefaceInputOn [GamefaceInputOn]
+			{
+				freeze cnxt.openCollectionDescriptionWindow
+			}
+
 			#WWSD-98633 Окно контейнеров отображается поверх кланового портала
 			#WWSD-147330 Armory открывается не в full screen при переходе из баннера на барже
-			on action.moveFromRewards send router.navigateTo '{"route": "PORT"}'
+			on [cnxt.enterBalancer action.moveFromRewards] send router.navigateTo '{"route": "PORT"}'
 			on sys.exit send action.LootboxProxy.moveFromBarge
-
-			on request.openPurchaseLootboxWindow PurchaseLootboxWindow [PurchaseLootboxWindow]
-
-			on action.openPurchaseLootboxWindowChance PurchaseLootboxWindowChance [PurchaseLootboxWindowChance]
-
-			on request.showLootboxTypes ModalWindowLootboxTypes [ModalWindowLootboxTypes]
 
 			on [action.lockBargeControls cnxt.beginLobbySpaceChangingAnimation] BargeLockedState
 			{
@@ -615,17 +614,15 @@ PreBattleOriginal [Context]
 			priority 42
 		}
 
-		on action.openAdventCalendarModal ModalWindowAdventCalendar [ModalWindowAdventCalendar]
-		{
-			priority 42
-			on sys.exit send action.onCloseAdventCalendarModal
-		}
+		#on action.openAdventCalendarModal ModalWindowAdventCalendar [ModalWindowAdventCalendar]
+		#{
+		#	priority 42
+		#	on sys.exit send action.onCloseAdventCalendarModal
+		#}
 
 		on [sfm.hideReplay request.showReplaysWindow] ModalWindowReplays [ModalWindowReplays]
 
 		on request.showRenameReplaysWindow ModalWindowRenameReplays [ModalWindowRenameReplays]
-
-		on [action.openLootboxes action.openLootboxesByType] ModalWindowOpenAllLootBoxes [ModalWindowOpenAllLootBoxes]
 
 		on nav.enterSse WindowSse [ModalWindowSse]
 
