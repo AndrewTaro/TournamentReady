@@ -374,8 +374,6 @@ PreBattleOriginal [Context]
 			leave on [action.SteamContext.resetCompletion cnxt.enterBalancer]
 		}
 
-		on request.openEventWikiPage ModalWindowEventWiki [ModalWindowEventWiki]
-
 		on request.showModalShipsBranchesFeatures ModalWindowShipsBranchesFeatures [ModalWindowShipsBranchesFeatures]
 
 		on request.showModalParagonsDropBranch ModalWindowParagonsDropBranch [ModalWindowParagonsDropBranch]
@@ -514,13 +512,29 @@ PreBattleOriginal [Context]
 
 		on nav.enterAdmiralsDeck ModalWindowAdmiralsDeck [ModalWindowAdmiralsDeck]
 
+		on [request.showNavalBaseLoader] NavalBaseEnter
+		{
+			window 'WaitingWindow'
+			consume [request.showNavalBaseLoader key.ESCAPE.down gui.btn_cancel gui.buttonClose router.navigateTo]
+			on sys.enter send sfm.showSpaceScreenshot
+			on cnxt.finishVehicleLoading send router.navigateTo '{"route": "NAVAL_BASE"} +STATE_DATA'
+			leave on [cnxt.finishVehicleLoading cnxt.playerBecameAvatar cnxt.enterBalancer]
+		}
+
+		on nav.enterNavalBase ModalWindowNavalBase [ModalWindowNavalBase]
+
 		on sys.enter ChatNotificationsPanelWindow
 		{
 			window 'ChatNotificationsPanel'
 		}
 
-
 		##################### MODAL WINDOWS #######################
+
+		on nav.enterGrandStrategyPass ModalWindowGrandStrategyPass [ModalWindowGrandStrategyPass]
+		{
+			priority 42
+			leave on nav.exitGrandStrategyPass
+		}
 
 		on wait.showPromoScreenCommon ModalWindowPromoscreenCommon [ModalWindowPromoscreenCommon]
 		{
@@ -619,6 +633,10 @@ PreBattleOriginal [Context]
 		#	priority 42
 		#	on sys.exit send action.onCloseAdventCalendarModal
 		#}
+
+		on request.openEventWikiPage ModalWindowEventWiki [ModalWindowEventWiki]
+
+		on request.openSplashScreenModal ModalWindowSplashScreen [ModalWindowSplashScreen]
 
 		on [sfm.hideReplay request.showReplaysWindow] ModalWindowReplays [ModalWindowReplays]
 
@@ -925,6 +943,8 @@ PreBattleOriginal [Context]
 
 		on request.showRules ModalWindowRules [ModalWindowRules]
 
+		on request.show2DHub ModalWindow2DHub [ModalWindow2DHub]
+
 		on [request.openRewardsModal] ModalWindowRewardContainer [ModalWindowRewardContainer]
 
 		on cnxt.showNotReadyPlayers NotReadyPlayers [NotReadyPlayers]
@@ -941,7 +961,8 @@ PreBattleOriginal [Context]
 
 		on cnxt.lockBattleTypeChange FreezeNavigationEventHub
 		{
-			consume [action.setBattleType action.setPortPreset]
+			# TODO: WWSD-245172 - re-fix the blocker of naval base or totally remove the blocker
+			consume [action.setBattleType action.setPortPreset action.openNavalBase]
 			leave on [cnxt.unlockBattleTypeChange cnxt.enterBalancer]
 		}
 
@@ -971,6 +992,7 @@ PreBattleOriginal [Context]
 
 			leave on [action.exitEventHub sfm.readyToLeaveEventHub]
 		}
+
 		##################### MODAL WINDOWS #######################
 
 		on cnxt.firstBattle FirstBattleChooseShip [Scene]
@@ -1027,6 +1049,9 @@ PreBattleOriginal [Context]
 				context 'Markers'
 			}
 		}
+
+		on request.openNavalBase send action.openNavalBase
+
 	}
 
 	on action.showEventOutdatedWindow ModalWindowEventOutdated [MessageBox]
