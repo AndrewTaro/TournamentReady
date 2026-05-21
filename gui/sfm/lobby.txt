@@ -123,6 +123,8 @@ PreBattleOriginal [Context]
 
 	on cnxt.becomePlayerAccount PlayerAccount
 	{
+		context 'NewYear25'
+
 		leave on cnxt.becomeNonPlayerAccount
 	}
 
@@ -296,11 +298,20 @@ PreBattleOriginal [Context]
 			consume [key.ESCAPE.down gui.btn_cancel gui.buttonClose]
 			on [gui.buttonClose gui.btn_cancel key.ESCAPE.down] send router.navigateTo '{"route": "PORT"}'
 
+			on sys.exit send router.setData '{"route": "SHIP_PREVIEW", "data": {"exteriorId": 0}}'
 			on sys.exit send action.resetExteriorPreview
 			on sys.exit send action.clearExcursion
 			on sys.exit send sfm.unfreezeMainAL
 
 			leave on nav.exitShipPreview
+		}
+
+		on nav.enterChristmasTreeNY ChristmasTree
+		{
+			consume [key.ESCAPE.down gui.btn_cancel gui.buttonClose gui.btn_back]
+			on [gui.buttonClose gui.btn_cancel key.ESCAPE.down gui.btn_back] send router.navigateTo '{"route": "PORT"}'
+
+			leave on nav.exitChristmasTreeNY
 		}
 
 		on nav.enterNewbieGifts NewbieGifts
@@ -510,18 +521,14 @@ PreBattleOriginal [Context]
 			priority 99
 		}
 
-		on nav.enterAdmiralsDeck ModalWindowAdmiralsDeck [ModalWindowAdmiralsDeck]
-
-		on [request.showNavalBaseLoader] NavalBaseEnter
+		on [request.showChristmasTreeLoader] ChristmasTreeEnter
 		{
 			window 'WaitingWindow'
-			consume [request.showNavalBaseLoader key.ESCAPE.down gui.btn_cancel gui.buttonClose router.navigateTo]
+			consume [key.ESCAPE.down gui.btn_cancel gui.buttonClose router.navigateTo]
 			on sys.enter send sfm.showSpaceScreenshot
-			on cnxt.finishVehicleLoading send router.navigateTo '{"route": "NAVAL_BASE"} +STATE_DATA'
+			on cnxt.finishVehicleLoading send router.navigateTo '{"route": "NY_CHRISTMAS_TREE"} +STATE_DATA'
 			leave on [cnxt.finishVehicleLoading cnxt.playerBecameAvatar cnxt.enterBalancer]
 		}
-
-		on nav.enterNavalBase ModalWindowNavalBase [ModalWindowNavalBase]
 
 		on sys.enter ChatNotificationsPanelWindow
 		{
@@ -536,12 +543,22 @@ PreBattleOriginal [Context]
 			leave on nav.exitGrandStrategyPass
 		}
 
-		on wait.showPromoScreenCommon ModalWindowPromoscreenCommon [ModalWindowPromoscreenCommon]
+		on [wait.showPromoScreenCommon] ModalWindowPromoscreenCommon [ModalWindowPromoscreenCommon]
+		{
+			priority 41
+		}
+
+		on [wait.showPromoScreenCommonGf] ModalWindowPromoscreenCommonGf [ModalWindowPromoscreenCommonGf]
 		{
 			priority 41
 		}
 
 		on wait.showPromoScreenEscBlocked ModalWindowPromoscreenNoEsc [ModalWindowPromoscreenNoEsc]
+		{
+			priority 41
+		}
+
+		on wait.showPromoScreenEscBlockedGf ModalWindowPromoscreenNoEscGf [ModalWindowPromoscreenNoEscGf]
 		{
 			priority 41
 		}
@@ -628,13 +645,22 @@ PreBattleOriginal [Context]
 			priority 42
 		}
 
-		#on action.openAdventCalendarModal ModalWindowAdventCalendar [ModalWindowAdventCalendar]
-		#{
-		#	priority 42
-		#	on sys.exit send action.onCloseAdventCalendarModal
-		#}
+		on action.openAdventCalendarModal ModalWindowAdventCalendar [ModalWindowAdventCalendar]
+		{
+			priority 42
+			on sys.exit send action.onCloseAdventCalendarModal
+		}
 
 		on request.openEventWikiPage ModalWindowEventWiki [ModalWindowEventWiki]
+
+		on request.openModernEraModal ModalWindowModernEra [ModalWindowModernEra]
+
+		on nav.enterModernEraWindow ModalWindowModernEra [ModalWindowModernEra]
+		{
+			priority 42
+			leave on nav.exitModernEraWindow
+		}
+		on request.openModernEraModal ModalWindowModernEra [ModalWindowModernEra]
 
 		on request.openSplashScreenModal ModalWindowSplashScreen [ModalWindowSplashScreen]
 
@@ -740,6 +766,8 @@ PreBattleOriginal [Context]
 
 		on request.openRetrainCrewWindow RetrainCrew [RetrainCrew]
 
+		on request.openAssignNationlessCrewWindow AssignNationlessCrew [AssignNationlessCrew]
+
 		on request.crewFastTraining CrewFastTraining [CrewFastTraining]
 
 		on request.openFireCrewWindow FireCrewYesNo [ModalWindowWithPricesAttention]
@@ -773,12 +801,6 @@ PreBattleOriginal [Context]
 		{
 			window 'ModalWindowModernizations'
 			on request.setModernizations send action.setModernizations
-		}
-
-        on [request.startPurchaseModuleST] ModalPurchaseWindowST [UnboundDialogYesNo]
-		{
-			window 'ModalPurchaseWindowST'
-			on request.setSTModule send action.moduleST.purchase
 		}
 
 		on request.leaveDivision leaveDivisionYesNo [UnboundDialogYesNo]
@@ -931,6 +953,10 @@ PreBattleOriginal [Context]
 
 		on [request.showSnowflakesModal] ModalWindowSnowflakesTakeBonuses [ModalWindowSnowflakesTakeBonuses]
 
+		on request.openModernEraPuchaseShipWindow ModalWindowModernEraPurchaseShip [ModalWindowModernEraPurchaseShip]
+
+		on request.openModernEraPuchaseShipUpgradeWindow ModalWindowModernEraPurchaseShipUpgrade [ModalWindowModernEraPurchaseShipUpgrade]
+
 		on request.openMiniDockyardOnboardingWindow ModalWindowMiniDockyardOnboarding [ModalWindowMiniDockyardOnboarding]
 
 		on request.openMiniDockyardGetAccessWindow ModalWindowMiniDockyardGetAccess [ModalWindowMiniDockyardGetAccess]
@@ -962,7 +988,7 @@ PreBattleOriginal [Context]
 		on cnxt.lockBattleTypeChange FreezeNavigationEventHub
 		{
 			# TODO: WWSD-245172 - re-fix the blocker of naval base or totally remove the blocker
-			consume [action.setBattleType action.setPortPreset action.openNavalBase]
+			consume [action.setBattleType action.setPortPreset]
 			leave on [cnxt.unlockBattleTypeChange cnxt.enterBalancer]
 		}
 
@@ -1049,9 +1075,6 @@ PreBattleOriginal [Context]
 				context 'Markers'
 			}
 		}
-
-		on request.openNavalBase send action.openNavalBase
-
 	}
 
 	on action.showEventOutdatedWindow ModalWindowEventOutdated [MessageBox]
