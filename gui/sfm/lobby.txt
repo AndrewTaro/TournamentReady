@@ -191,6 +191,11 @@ PreBattleOriginal [Context]
 			leave on nav.exitClans
 		}
 
+		on cnxt.dockReady IOMarkersPanelWindow
+		{
+			window 'InteractiveObjectMarkersPanel'
+		}
+
 		on [cnxt.dockReady debug.showDockWindow] DockWindow
 		{
 			window 'Dock'
@@ -530,9 +535,22 @@ PreBattleOriginal [Context]
 			leave on [cnxt.finishVehicleLoading cnxt.playerBecameAvatar cnxt.enterBalancer]
 		}
 
+		on request.openNarrativeCampaignModal ModalWindowNarrativeCampaign [ModalWindowNarrativeCampaign]
+		{
+			priority 99
+		}
+
 		on sys.enter ChatNotificationsPanelWindow
 		{
 			window 'ChatNotificationsPanel'
+		}
+
+		on nav.enterVisualCustomizationNode DecalPoint
+		{
+			consume [key.ESCAPE.down gui.btn_cancel gui.btn_back request.backToExterior cnxt.enterBalancer]
+			on [key.ESCAPE.down gui.btn_cancel gui.btn_back request.backToExterior cnxt.enterBalancer action.setIsReadyInDivision] send action.moveToVisualCustomization
+
+			leave on nav.exitVisualCustomizationNode
 		}
 
 		##################### MODAL WINDOWS #######################
@@ -838,6 +856,7 @@ PreBattleOriginal [Context]
 			on request.installCamouflage send action.installCamouflage
 			on request.buyAndInstallCamouflage send action.buyAndInstallCamouflage
 			on request.linkAndInstallShipDestruction send action.linkAndInstallShipDestruction
+			leave on cnxt.startVehicleLoading
 		}
 
 		on request.installRecommendedModernizationsModal BuyAndInstallRecommendedModernizations [WindowWithPricesAttention]
@@ -853,6 +872,8 @@ PreBattleOriginal [Context]
 			on request.buyMultiboost send action.buyMultiboost
 			on request.linkMultiboost send action.linkMultiboost
 		}
+
+		on request.openUninstallDecalsWindow ModalWindowUninstallDecals [ModalWindowUninstallDecals]
 
 		on request.openModalWindowSelectPort BackgroundModalWindowPort [BackgroundModalWindowPort]
 		{
@@ -1018,6 +1039,7 @@ PreBattleOriginal [Context]
 
 			leave on [action.exitEventHub sfm.readyToLeaveEventHub]
 		}
+
 
 		##################### MODAL WINDOWS #######################
 
